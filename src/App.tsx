@@ -1,4 +1,3 @@
-/// <reference types="vite/client" />
 import { useState, useRef, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
 
@@ -98,6 +97,14 @@ const GLOBAL_STYLES = `
   .fade-up { animation: fadeUp 0.25s ease; }
   @keyframes slideIn { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: translateX(0); } }
   .slide-in { animation: slideIn 0.2s ease; }
+  html, body { overflow-x: hidden; max-width: 100%; }
+  .header-email { font-family: 'DM Sans', sans-serif; font-size: 0.78rem; color: #444; }
+  .btn-logout { }
+  @media (max-width: 600px) {
+    .header-email { display: none; }
+    .btn-logout { display: none; }
+    .btn-primary.btn-log-workout { padding: 7px 12px !important; font-size: 0.8rem !important; letter-spacing: 1px !important; }
+  }
 `;
 
 // ---------------------------------------------------------------------------
@@ -583,16 +590,16 @@ export default function HyroxApp() {
               </span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontFamily: "'DM Sans'", fontSize: "0.78rem", color: "#444" }}>{user.email}</span>
+              <span className="header-email">{user.email}</span>
               <button
-                className="btn-ghost"
+                className="btn-ghost btn-logout"
                 style={{ padding: "6px 14px", fontSize: "0.8rem" }}
                 onClick={handleLogout}
               >
                 LOG OUT
               </button>
               <button
-                className="btn-primary"
+                className="btn-primary btn-log-workout"
                 style={{ padding: "8px 18px", fontSize: "0.85rem" }}
                 onClick={() => setTab("log")}
               >
