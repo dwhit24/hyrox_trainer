@@ -511,8 +511,8 @@ export default function HyroxApp() {
               {["Build me a 12-week plan", "How do I pace sled push?", "Analyze my weaknesses", "Race day strategy", "Best way to improve SkiErg"].map(p => (
                 <button key={p} onClick={() => setAiInput(p)}
                   style={{ background: "#111", border: "1px solid #1e1e1e", color: "#666", padding: "5px 11px", borderRadius: 16, fontFamily: "'DM Sans'", fontSize: "0.78rem", cursor: "pointer", transition: "all 0.15s" }}
-                  onMouseEnter={e => { e.target.style.borderColor = "#ff3c00"; e.target.style.color = "#f0f0f0"; }}
-                  onMouseLeave={e => { e.target.style.borderColor = "#1e1e1e"; e.target.style.color = "#666"; }}>
+                  onMouseEnter={e => { (e.target as HTMLElement).style.borderColor = "#ff3c00"; (e.target as HTMLElement).style.color = "#f0f0f0"; }}
+                  onMouseLeave={e => { (e.target as HTMLElement).style.borderColor = "#1e1e1e"; (e.target as HTMLElement).style.color = "#666"; }}>
                   {p}
                 </button>
               ))}
