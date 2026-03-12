@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 import { useState, useRef, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
 
