@@ -67,12 +67,9 @@ const GLOBAL_STYLES = `
   ::-webkit-scrollbar { width: 4px; }
   ::-webkit-scrollbar-track { background: #111; }
   ::-webkit-scrollbar-thumb { background: #ff3c00; }
-  .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #0d0d0d; border-top: 1px solid #1c1c1c; display: flex; z-index: 100; padding-bottom: env(safe-area-inset-bottom); }
-  .bottom-nav-btn { flex: 1; background: none; border: none; color: #555; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 4px 8px; transition: color 0.2s; gap: 3px; -webkit-tap-highlight-color: transparent; }
-  .bottom-nav-btn.active { color: #ff3c00; }
-  .bottom-nav-btn:hover { color: #aaa; }
-  .bottom-nav-icon { font-size: 1.3rem; line-height: 1; }
-  .bottom-nav-label { font-size: 0.6rem; letter-spacing: 0.5px; font-family: 'DM Sans', sans-serif; text-transform: uppercase; }
+  .tab-btn { background: none; border: none; color: #666; cursor: pointer; font-family: 'Bebas Neue', sans-serif; font-size: 1rem; letter-spacing: 2px; padding: 12px 18px; transition: all 0.2s; border-bottom: 2px solid transparent; white-space: nowrap; }
+  .tab-btn.active { color: #ff3c00; border-bottom: 2px solid #ff3c00; }
+  .tab-btn:hover { color: #f0f0f0; }
   .input-field { background: #161616; border: 1px solid #252525; color: #f0f0f0; padding: 9px 13px; border-radius: 5px; font-family: 'DM Sans', sans-serif; font-size: 0.88rem; width: 100%; transition: border 0.2s; outline: none; }
   .input-field:focus { border-color: #ff3c00; background: #1a1a1a; }
   .select-field { background: #161616; border: 1px solid #252525; color: #f0f0f0; padding: 9px 13px; border-radius: 5px; font-family: 'DM Sans', sans-serif; font-size: 0.88rem; width: 100%; outline: none; cursor: pointer; }
@@ -381,7 +378,7 @@ export default function HyroxApp() {
     const efforts = workoutLog.flatMap((w) =>
       w.blocks
         .filter((b: any) => b.exerciseId === ex.id && b.time && b.distance)
-        .map((b: any) => ({ time: b.time, distance: parseFloat(b.distance) }))
+        .map((b: any) => ({ time: b.time, distance: parseFloat(b.distance), date: w.date }))
     );
     if (efforts.length) {
       prs[ex.id] = efforts.reduce((best: any, e: any) => (e.time < best.time ? e : best));
@@ -602,13 +599,40 @@ export default function HyroxApp() {
               >
                 LOG OUT
               </button>
+              <button
+                className="btn-primary btn-log-workout"
+                style={{ padding: "8px 18px", fontSize: "0.85rem" }}
+                onClick={() => setTab("log")}
+              >
+                + LOG WORKOUT
+              </button>
             </div>
+          </div>
+          <div style={{ display: "flex", gap: 0, marginTop: 6, overflowX: "auto" }}>
+            {[
+              ["dashboard", "Dashboard"],
+              ["log", "Log Workout"],
+              ["history", "History"],
+              ["prs", "Station PRs"],
+              ["coach", "AI Coach"],
+            ].map(([t, label]) => (
+              <button
+                key={t}
+                className={`tab-btn ${tab === t ? "active" : ""}`}
+                onClick={() => {
+                  setTab(t);
+                  if (t !== "history") setViewingWorkout(null);
+                }}
+              >
+                {label}
+              </button>
+            ))}
           </div>
         </div>
       </div>
 
       {/* ── Content ── */}
-      <div style={{ maxWidth: 860, margin: "0 auto", padding: "24px 20px", paddingBottom: "calc(80px + env(safe-area-inset-bottom))" }}>
+      <div style={{ maxWidth: 860, margin: "0 auto", padding: "24px 20px" }}>
 
         {/* ──────────── DASHBOARD ──────────── */}
         {tab === "dashboard" && (
@@ -652,7 +676,7 @@ export default function HyroxApp() {
                   </div>
                   {workoutLog.length === 0 ? (
                     <div style={{ color: "#333", fontFamily: "'DM Sans'", fontSize: "0.9rem", textAlign: "center", padding: "28px 0" }}>
-                      No workouts yet. Tap <span style={{ color: "#ff3c00" }}>➕ Log</span> below to start 0💪
+                      No workouts yet. Hit <span style={{ color: "#ff3c00" }}>+ LOG WORKOUT</span> to start! 💪
                     </div>
                   ) : (
                     workoutLog.slice(0, 4).map((w) => (
@@ -994,6 +1018,7 @@ export default function HyroxApp() {
                           <>
                             <div style={{ fontSize: "1.6rem", color: "#ff7b00" }}>{formatTime(pr.time)}</div>
                             <div style={{ fontSize: "0.72rem", color: "#555", fontFamily: "'DM Sans'" }}>{pr.distance}{ex.defaultUnit}</div>
+                            <div style={{ fontSize: "0.68rem", color: "#444", fontFamily: "'DM Sans'", marginTop: 2 }}>{pr.date}</div>
                           </>
                         ) : (
                           <div style={{ fontSize: "1.4rem", color: "#222" }}>--:--</div>
@@ -1076,30 +1101,6 @@ export default function HyroxApp() {
         )}
 
       </div>
-
-      {/* ── Bottom Navigation ── */}
-      <nav className="bottom-nav">
-        {([
-          ["dashboard", "🏠", "Home"],
-          ["log", "➕", "Log"],
-          ["history", "📋", "History"],
-          ["prs", "🥇", "PRs"],
-          ["coach", "💬", "Coach"],
-        ] as [string, string, string][]).map(([t, icon, label]) => (
-          <button
-            key={t}
-            className={`bottom-nav-btn ${tab === t ? "active" : ""}`}
-            onClick={() => {
-              setTab(t);
-              if (t !== "history") setViewingWorkout(null);
-            }}
-          >
-            <span className="bottom-nav-icon">{icon}</span>
-            <span className="bottom-nav-label">{label}</span>
-          </button>
-        ))}
-      </nav>
-
     </div>
   );
 }
