@@ -114,7 +114,6 @@ const GLOBAL_STYLES = `
 // ---------------------------------------------------------------------------
 // Main component
 // ---------------------------------------------------------------------------
------------------------------------
 export default function HyroxApp() {
   // Workout state
   const [tab, setTab] = useState("dashboard");
@@ -380,7 +379,8 @@ export default function HyroxApp() {
   const prs: Record<string, any> = {};
   EXERCISE_TYPES.forEach((ex) => {
     const efforts = workoutLog.flatMap((w) =>
-      w.blocks.filter((b: any) => b.exerciseId === ex.id && b.time && b.distance)
+      w.blocks
+        .filter((b: any) => b.exerciseId === ex.id && b.time && b.distance)
         .map((b: any) => ({ time: b.time, distance: parseFloat(b.distance) }))
     );
     if (efforts.length) {
@@ -652,7 +652,7 @@ export default function HyroxApp() {
                   </div>
                   {workoutLog.length === 0 ? (
                     <div style={{ color: "#333", fontFamily: "'DM Sans'", fontSize: "0.9rem", textAlign: "center", padding: "28px 0" }}>
-                      No workouts yet. Tap <span style={{ color: "#ff3c00" }}>➕ Log</span> below to start! 💪
+                      No workouts yet. Tap <span style={{ color: "#ff3c00" }}>➕ Log</span> below to start 0💪
                     </div>
                   ) : (
                     workoutLog.slice(0, 4).map((w) => (
