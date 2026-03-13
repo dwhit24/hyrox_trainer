@@ -14,15 +14,15 @@ const supabase = createClient(
 // Constants
 // ---------------------------------------------------------------------------
 const EXERCISE_TYPES = [
-  { id: "run", name: "Run", icon: "ð", defaultUnit: "m", color: "#3b9eff" },
-  { id: "skierg", name: "SkiErg", icon: "â·ï¸", defaultUnit: "m", color: "#ff3c00" },
-  { id: "sled_push", name: "Sled Push", icon: "ð·", defaultUnit: "m", color: "#ff3c00" },
-  { id: "sled_pull", name: "Sled Pull", icon: "ð", defaultUnit: "m", color: "#ff3c00" },
-  { id: "burpee_jump", name: "Burpee Broad Jump", icon: "ð¥", defaultUnit: "m", color: "#ff3c00" },
-  { id: "rowing", name: "Rowing", icon: "ð£", defaultUnit: "m", color: "#ff3c00" },
-  { id: "farmers_carry", name: "Farmers Carry", icon: "ðª", defaultUnit: "m", color: "#ff3c00" },
-  { id: "sandbag_lunges", name: "Sandbag Lunges", icon: "ð", defaultUnit: "m", color: "#ff3c00" },
-  { id: "wall_balls", name: "Wall Balls", icon: "ð", defaultUnit: "reps", color: "#ff3c00" },
+  { id: "run", name: "Run", icon: "🏃", defaultUnit: "m", color: "#3b9eff" },
+  { id: "skierg", name: "SkiErg", icon: "⛷️", defaultUnit: "m", color: "#ff3c00" },
+  { id: "sled_push", name: "Sled Push", icon: "🛷", defaultUnit: "m", color: "#ff3c00" },
+  { id: "sled_pull", name: "Sled Pull", icon: "🔗", defaultUnit: "m", color: "#ff3c00" },
+  { id: "burpee_jump", name: "Burpee Broad Jump", icon: "💥", defaultUnit: "m", color: "#ff3c00" },
+  { id: "rowing", name: "Rowing", icon: "🚣", defaultUnit: "m", color: "#ff3c00" },
+  { id: "farmers_carry", name: "Farmers Carry", icon: "💪", defaultUnit: "m", color: "#ff3c00" },
+  { id: "sandbag_lunges", name: "Sandbag Lunges", icon: "🎒", defaultUnit: "m", color: "#ff3c00" },
+  { id: "wall_balls", name: "Wall Balls", icon: "🏀", defaultUnit: "reps", color: "#ff3c00" },
 ];
 
 const UNIT_OPTIONS = ["m", "km", "reps", "min"];
@@ -113,7 +113,8 @@ const GLOBAL_STYLES = `
 
 // ---------------------------------------------------------------------------
 // Main component
-// ---------------------------------------------------------------
+// ---------------------------------------------------------------------------
+-----------------------------------
 export default function HyroxApp() {
   // Workout state
   const [tab, setTab] = useState("dashboard");
@@ -126,7 +127,7 @@ export default function HyroxApp() {
 
   // AI Coach state
   const [aiMessages, setAiMessages] = useState([
-    { role: "assistant", content: "Hey athlete ð I'm your Hyrox AI coach. Ask me anything â race strategy, training plans, station tips, or review your progress." },
+    { role: "assistant", content: "Hey athlete 👋 I'm your Hyrox AI coach. Ask me anything — race strategy, training plans, station tips, or review your progress." },
   ]);
   const [aiInput, setAiInput] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
@@ -143,7 +144,7 @@ export default function HyroxApp() {
   const [dataLoading, setDataLoading] = useState(false);
 
   // ---------------------------------------------------------------------------
-  // Auth effect â runs once on mount
+  // Auth effect — runs once on mount
   // ---------------------------------------------------------------------------
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -226,7 +227,7 @@ export default function HyroxApp() {
       .insert({
         user_id: user.id,
         date: logDate,
-        name: workoutName || `Workout â ${logDate}`,
+        name: workoutName || `Workout — ${logDate}`,
         total_time: totalSeconds(validBlocks),
       })
       .select()
@@ -271,7 +272,7 @@ export default function HyroxApp() {
       if (error) {
         setAuthError(error.message);
       } else {
-        setAuthError("â Account created! Check your email to confirm, then sign in.");
+        setAuthError("✓ Account created! Check your email to confirm, then sign in.");
       }
     } else {
       const { error } = await supabase.auth.signInWithPassword({
@@ -379,8 +380,7 @@ export default function HyroxApp() {
   const prs: Record<string, any> = {};
   EXERCISE_TYPES.forEach((ex) => {
     const efforts = workoutLog.flatMap((w) =>
-      w.blocks
-        .filter((b: any) => b.exerciseId === ex.id && b.time && b.distance)
+      w.blocks.filter((b: any) => b.exerciseId === ex.id && b.time && b.distance)
         .map((b: any) => ({ time: b.time, distance: parseFloat(b.distance) }))
     );
     if (efforts.length) {
@@ -504,7 +504,7 @@ export default function HyroxApp() {
                 <input
                   className="input-field"
                   type="password"
-                  placeholder="â¢â¢â¢â¢â¢â¢â¢â¢"
+                  placeholder="••••••••"
                   value={authPassword}
                   onChange={(e) => setAuthPassword(e.target.value)}
                   required
@@ -517,12 +517,12 @@ export default function HyroxApp() {
                   style={{
                     fontFamily: "'DM Sans'",
                     fontSize: "0.82rem",
-                    color: authError.startsWith("â") ? "#22c55e" : "#ff4444",
+                    color: authError.startsWith("✓") ? "#22c55e" : "#ff4444",
                     marginBottom: 16,
                     padding: "10px 12px",
-                    background: authError.startsWith("â") ? "#0a1f0a" : "#1a0000",
+                    background: authError.startsWith("✓") ? "#0a1f0a" : "#1a0000",
                     borderRadius: 5,
-                    border: `1px solid ${authError.startsWith("â") ? "#166534" : "#330000"}`,
+                    border: `1px solid ${authError.startsWith("✓") ? "#166534" : "#330000"}`,
                   }}
                 >
                   {authError}
@@ -574,7 +574,7 @@ export default function HyroxApp() {
     <div style={{ fontFamily: "'Bebas Neue', sans-serif", background: "#0a0a0a", minHeight: "100vh", color: "#f0f0f0" }}>
       <style>{GLOBAL_STYLES}</style>
 
-      {/* ââ Header ââ */}
+      {/* ── Header ── */}
       <div
         style={{
           background: "#0c0c0c",
@@ -607,10 +607,10 @@ export default function HyroxApp() {
         </div>
       </div>
 
-      {/* ââ Content ââ */}
+      {/* ── Content ── */}
       <div style={{ maxWidth: 860, margin: "0 auto", padding: "24px 20px", paddingBottom: "calc(80px + env(safe-area-inset-bottom))" }}>
 
-        {/* ââââââââââââ DASHBOARD ââââââââââââ */}
+        {/* ──────────── DASHBOARD ──────────── */}
         {tab === "dashboard" && (
           <div className="fade-up">
             <div style={{ marginBottom: 24 }}>
@@ -652,7 +652,7 @@ export default function HyroxApp() {
                   </div>
                   {workoutLog.length === 0 ? (
                     <div style={{ color: "#333", fontFamily: "'DM Sans'", fontSize: "0.9rem", textAlign: "center", padding: "28px 0" }}>
-                      No workouts yet. Tap <span style={{ color: "#ff3c00" }}>â Log</span> below to start! ðª
+                      No workouts yet. Tap <span style={{ color: "#ff3c00" }}>➕ Log</span> below to start! 💪
                     </div>
                   ) : (
                     workoutLog.slice(0, 4).map((w) => (
@@ -697,7 +697,7 @@ export default function HyroxApp() {
           </div>
         )}
 
-        {/* ââââââââââââ LOG WORKOUT ââââââââââââ */}
+        {/* ──────────── LOG WORKOUT ──────────── */}
         {tab === "log" && (
           <div className="fade-up">
             <div style={{ marginBottom: 22 }}>
@@ -731,7 +731,7 @@ export default function HyroxApp() {
 
             <div style={{ marginBottom: 12 }}>
               <div style={{ fontSize: "0.72rem", color: "#555", letterSpacing: 3, fontFamily: "'DM Sans'", marginBottom: 12 }}>
-                WORKOUT BLOCKS â IN ORDER
+                WORKOUT BLOCKS — IN ORDER
               </div>
               {blocks.map((block, idx) => {
                 const ex = getEx(block.exerciseId);
@@ -746,9 +746,9 @@ export default function HyroxApp() {
                           <option key={e.id} value={e.id}>{e.icon} {e.name}</option>
                         ))}
                       </select>
-                      <button className="icon-btn" onClick={() => moveBlock(block.id, "up")}>â</button>
-                      <button className="icon-btn" onClick={() => moveBlock(block.id, "down")}>â</button>
-                      <button className="icon-btn danger" onClick={() => removeBlock(block.id)}>â</button>
+                      <button className="icon-btn" onClick={() => moveBlock(block.id, "up")}>↑</button>
+                      <button className="icon-btn" onClick={() => moveBlock(block.id, "down")}>↓</button>
+                      <button className="icon-btn danger" onClick={() => removeBlock(block.id)}>✕</button>
                     </div>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 80px 1fr", gap: 10 }}>
                       <div>
@@ -785,7 +785,7 @@ export default function HyroxApp() {
                     <div style={{ marginTop: 10 }}>
                       <input
                         className="input-field"
-                        placeholder="Notes â e.g. felt strong, 20kg sled, HR 165..."
+                        placeholder="Notes — e.g. felt strong, 20kg sled, HR 165..."
                         value={block.notes}
                         onChange={(e) => updateBlock(block.id, "notes", e.target.value)}
                         style={{ fontSize: "0.82rem", color: "#888" }}
@@ -794,9 +794,9 @@ export default function HyroxApp() {
                     {(block.distance || block.time > 0) && (
                       <div style={{ marginTop: 10, padding: "7px 11px", background: "#141414", borderRadius: 5, fontFamily: "'DM Sans'", fontSize: "0.78rem", color: "#777", display: "flex", gap: 18, flexWrap: "wrap" }}>
                         {block.distance && <span>{ex.icon} <strong style={{ color: "#ccc" }}>{block.distance}{block.unit}</strong></span>}
-                        {block.time > 0 && <span>â± <strong style={{ color: "#ff7b00" }}>{formatTime(block.time)}</strong></span>}
+                        {block.time > 0 && <span>⏱ <strong style={{ color: "#ff7b00" }}>{formatTime(block.time)}</strong></span>}
                         {block.distance && block.time > 0 && block.unit === "m" && parseFloat(block.distance) > 0 && (
-                          <span>ð <strong style={{ color: "#aaa" }}>{Math.round((block.time / parseFloat(block.distance)) * 1000)}s / km</strong></span>
+                          <span>📈 <strong style={{ color: "#aaa" }}>{Math.round((block.time / parseFloat(block.distance)) * 1000)}s / km</strong></span>
                         )}
                       </div>
                     )}
@@ -820,7 +820,7 @@ export default function HyroxApp() {
                       {ex.icon} {ex.name}
                     </button>
                   ))}
-                  <button className="ex-pill" onClick={() => setAddingExercise(false)} style={{ color: "#444" }}>â Cancel</button>
+                  <button className="ex-pill" onClick={() => setAddingExercise(false)} style={{ color: "#444" }}>✕ Cancel</button>
                 </div>
               </div>
             )}
@@ -846,7 +846,7 @@ export default function HyroxApp() {
           </div>
         )}
 
-        {/* ââââââââââââ HISTORY ââââââââââââ */}
+        {/* ──────────── HISTORY ──────────── */}
         {tab === "history" && (
           <div className="fade-up">
             <div style={{ marginBottom: 22 }}>
@@ -859,14 +859,14 @@ export default function HyroxApp() {
             {viewingWorkout ? (
               <div className="slide-in">
                 <button className="btn-ghost" onClick={() => setViewingWorkout(null)} style={{ marginBottom: 16, fontSize: "0.85rem" }}>
-                  â BACK
+                  ← BACK
                 </button>
                 <div className="card">
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
                     <div>
                       <div style={{ fontSize: "1.7rem", letterSpacing: 2 }}>{viewingWorkout.name}</div>
                       <div style={{ fontSize: "0.78rem", color: "#555", fontFamily: "'DM Sans'", marginTop: 3 }}>
-                        {viewingWorkout.date} Â· {viewingWorkout.blocks.length} blocks
+                        {viewingWorkout.date} · {viewingWorkout.blocks.length} blocks
                       </div>
                     </div>
                     <div style={{ textAlign: "right" }}>
@@ -903,7 +903,7 @@ export default function HyroxApp() {
                             </div>
                             <div style={{ textAlign: "right" }}>
                               {b.distance && <div style={{ fontFamily: "'DM Sans'", fontSize: "1rem", fontWeight: 700, color: dotColor }}>{b.distance}{b.unit}</div>}
-                              {b.time > 0 && <div style={{ fontFamily: "'DM Sans'", fontSize: "0.82rem", color: "#888", marginTop: 1 }}>â± {formatTime(b.time)}</div>}
+                              {b.time > 0 && <div style={{ fontFamily: "'DM Sans'", fontSize: "0.82rem", color: "#888", marginTop: 1 }}>⏱ {formatTime(b.time)}</div>}
                               {b.distance && b.time > 0 && b.unit === "m" && parseFloat(b.distance) > 0 && (
                                 <div style={{ fontFamily: "'DM Sans'", fontSize: "0.75rem", color: "#555", marginTop: 1 }}>
                                   {Math.round((b.time / parseFloat(b.distance)) * 1000)}s/km
@@ -942,7 +942,7 @@ export default function HyroxApp() {
                         <div>
                           <div style={{ fontSize: "1.1rem", letterSpacing: 2 }}>{w.name}</div>
                           <div style={{ fontSize: "0.72rem", color: "#555", fontFamily: "'DM Sans'", marginTop: 2 }}>
-                            {w.date} Â· {w.blocks.length} blocks
+                            {w.date} · {w.blocks.length} blocks
                           </div>
                         </div>
                         <div style={{ fontFamily: "'DM Sans'", fontSize: "1.1rem", color: "#ff7b00", fontWeight: 600 }}>
@@ -970,7 +970,7 @@ export default function HyroxApp() {
           </div>
         )}
 
-        {/* ââââââââââââ STATION PRs ââââââââââââ */}
+        {/* ──────────── STATION PRs ──────────── */}
         {tab === "prs" && (
           <div className="fade-up">
             <div style={{ marginBottom: 22 }}>
@@ -1014,7 +1014,7 @@ export default function HyroxApp() {
           </div>
         )}
 
-        {/* ââââââââââââ AI COACH ââââââââââââ */}
+        {/* ──────────── AI COACH ──────────── */}
         {tab === "coach" && (
           <div className="fade-up" style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 180px)" }}>
             <div style={{ marginBottom: 16 }}>
@@ -1053,7 +1053,7 @@ export default function HyroxApp() {
                 <div style={{ display: "flex" }}>
                   <div className="ai-bubble assistant">
                     <div style={{ fontFamily: "'Bebas Neue'", fontSize: "0.85rem", color: "#ff3c00", letterSpacing: 2, marginBottom: 5 }}>AI COACH</div>
-                    <div style={{ color: "#444", fontFamily: "'DM Sans'" }}>Analyzing â¡</div>
+                    <div style={{ color: "#444", fontFamily: "'DM Sans'" }}>Analyzing ⚡</div>
                   </div>
                 </div>
               )}
@@ -1077,14 +1077,14 @@ export default function HyroxApp() {
 
       </div>
 
-      {/* ââ Bottom Navigation ââ */}
+      {/* ── Bottom Navigation ── */}
       <nav className="bottom-nav">
         {([
-          ["dashboard", "ð ", "Home"],
-          ["log", "â", "Log"],
-          ["history", "ð", "History"],
-          ["prs", "ð¥", "PRs"],
-          ["coach", "ð¬", "Coach"],
+          ["dashboard", "🏠", "Home"],
+          ["log", "➕", "Log"],
+          ["history", "📋", "History"],
+          ["prs", "🥇", "PRs"],
+          ["coach", "💬", "Coach"],
         ] as [string, string, string][]).map(([t, icon, label]) => (
           <button
             key={t}
