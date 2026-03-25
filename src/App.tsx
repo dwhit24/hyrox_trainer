@@ -890,7 +890,7 @@ export default function HyroxApp() {
   // Main app
   // ---------------------------------------------------------------------------
   return (
-    <div style={{ fontFamily: "'Bebas Neue', sans-serif", background: "#0a0a0a", minHeight: "100vh", color: "#f0f0f0" }}>
+    <div style={{ fontFamily: "'Bebas Neue', sans-serif", background: "#0a0a0a", minHeight: "100vh", overflowX: "hidden", color: "#f0f0f0" }}>
       <style>{GLOBAL_STYLES}</style>
 
       {/* ── Header ── */}
@@ -1434,7 +1434,12 @@ export default function HyroxApp() {
               <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
                 <div>
                   <div style={{ fontSize: "0.72rem", color: "#888", letterSpacing: 2, marginBottom: 7, fontFamily: "'DM Sans'" }}>RACE DATE (optional)</div>
-                  <input type="date" className="input-field" value={planForm.raceDate} onChange={(e) => setPlanForm(f => ({ ...f, raceDate: e.target.value }))} />
+                  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                    <input type="date" className="input-field" value={planForm.raceDate} onChange={(e) => setPlanForm(f => ({ ...f, raceDate: e.target.value }))} style={{ flex: 1, minWidth: 0 }} />
+                    {planForm.raceDate && (
+                      <button onClick={() => setPlanForm(f => ({ ...f, raceDate: "" }))} style={{ background: "#161616", border: "1px solid #252525", color: "#888", padding: "9px 12px", borderRadius: 5, cursor: "pointer", fontFamily: "'DM Sans'", fontSize: "0.85rem", flexShrink: 0 }}>CLEAR</button>
+                    )}
+                  </div>
                 </div>
                 <div>
                   <div style={{ fontSize: "0.72rem", color: "#888", letterSpacing: 2, marginBottom: 8, fontFamily: "'DM Sans'" }}>FITNESS LEVEL</div>
@@ -1602,7 +1607,7 @@ export default function HyroxApp() {
             onClick={() => {
               setTab(t);
               if (t !== "history") setViewingWorkout(null);
-              window.scrollTo({ top: 0, behavior: "instant" });
+              window.scrollTo(0, 0);
             }}
           >
             <span className="bottom-nav-icon">{icon}</span>
