@@ -338,7 +338,7 @@ const GLOBAL_STYLES = `
   .fade-up { animation: fadeUp 0.25s ease; }
   @keyframes slideIn { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: translateX(0); } }
   .slide-in { animation: slideIn 0.2s ease; }
-  html, body { overflow-x: hidden; max-width: 100%; }
+  html, body { overflow-x: hidden; max-width: 100%; overscroll-behavior: none; background: #0a0a0a; }
   .header-email { font-family: 'DM Sans', sans-serif; font-size: 0.78rem; color: #444; }
   .btn-logout { }
   @media (max-width: 600px) {
@@ -879,7 +879,7 @@ export default function HyroxApp() {
       </div>
 
       {/* ── Content ── */}
-      <div style={{ maxWidth: 860, margin: "0 auto", padding: "24px 20px", paddingBottom: "calc(80px + env(safe-area-inset-bottom))" }}>
+      <div style={{ maxWidth: 860, margin: "0 auto", padding: "24px 20px", paddingBottom: "calc(120px + env(safe-area-inset-bottom))" }}>
 
         {/* ──────────── DASHBOARD ──────────── */}
         {tab === "dashboard" && (
