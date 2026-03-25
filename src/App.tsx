@@ -347,7 +347,8 @@ const GLOBAL_STYLES = `
   .fade-up { animation: fadeUp 0.25s ease; }
   @keyframes slideIn { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: translateX(0); } }
   .slide-in { animation: slideIn 0.2s ease; }
-  html, body { overflow-x: hidden; max-width: 100%; overscroll-behavior: none; background: #0a0a0a; }
+  html { background: #0a0a0a; overscroll-behavior: none; }
+  body { overflow-x: hidden; max-width: 100%; overscroll-behavior: none; background: #0a0a0a; }
   .header-email { font-family: 'DM Sans', sans-serif; font-size: 0.78rem; color: #444; }
   .btn-logout { }
   @media (max-width: 600px) {
@@ -889,7 +890,7 @@ export default function HyroxApp() {
   // Main app
   // ---------------------------------------------------------------------------
   return (
-    <div style={{ fontFamily: "'Bebas Neue', sans-serif", background: "#0a0a0a", minHeight: "100vh", overflowX: "hidden", color: "#f0f0f0" }}>
+    <div style={{ fontFamily: "'Bebas Neue', sans-serif", background: "#0a0a0a", minHeight: "100vh", color: "#f0f0f0" }}>
       <style>{GLOBAL_STYLES}</style>
 
       {/* ── Header ── */}
@@ -897,14 +898,9 @@ export default function HyroxApp() {
         style={{
           background: "#0c0c0c",
           borderBottom: "1px solid #1a1a1a",
-          paddingLeft: "20px",
-          paddingRight: "20px",
-          paddingTop: "env(safe-area-inset-top)",
-          paddingBottom: 0,
-          position: "fixed",
+          padding: "0 20px",
+          position: "sticky",
           top: 0,
-          left: 0,
-          right: 0,
           zIndex: 200,
         }}
       >
@@ -931,7 +927,7 @@ export default function HyroxApp() {
       </div>
 
       {/* ── Content ── */}
-      <div style={{ maxWidth: 860, margin: "0 auto", padding: "24px 20px", paddingTop: "calc(66px + env(safe-area-inset-top))", paddingBottom: "calc(140px + env(safe-area-inset-bottom))" }}>
+      <div style={{ maxWidth: 860, margin: "0 auto", padding: "20px 20px", paddingBottom: "calc(140px + env(safe-area-inset-bottom))" }}>
 
         {/* ──────────── DASHBOARD ──────────── */}
         {tab === "dashboard" && (
