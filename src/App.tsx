@@ -347,7 +347,7 @@ const GLOBAL_STYLES = `
   .fade-up { animation: fadeUp 0.25s ease; }
   @keyframes slideIn { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: translateX(0); } }
   .slide-in { animation: slideIn 0.2s ease; }
-  html, body { overflow-x: hidden; max-width: 100%; overscroll-behavior: none; background: #0a0a0a; }
+  html, body { overflow: hidden; height: 100%; background: #0a0a0a; }
   .header-email { font-family: 'DM Sans', sans-serif; font-size: 0.78rem; color: #444; }
   .btn-logout { }
   @media (max-width: 600px) {
@@ -387,6 +387,7 @@ export default function HyroxApp() {
   const [aiInput, setAiInput] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Auth state
   const [user, setUser] = useState<any>(null);
@@ -889,7 +890,7 @@ export default function HyroxApp() {
   // Main app
   // ---------------------------------------------------------------------------
   return (
-    <div style={{ fontFamily: "'Bebas Neue', sans-serif", background: "#0a0a0a", minHeight: "100vh", color: "#f0f0f0" }}>
+    <div ref={scrollContainerRef} style={{ fontFamily: "'Bebas Neue', sans-serif", background: "#0a0a0a", height: "100vh", overflowY: "scroll", overflowX: "hidden", WebkitOverflowScrolling: "touch" as any, color: "#f0f0f0" }}>
       <style>{GLOBAL_STYLES}</style>
 
       {/* ── Header ── */}
@@ -1608,7 +1609,7 @@ export default function HyroxApp() {
             onClick={() => {
               setTab(t);
               if (t !== "history") setViewingWorkout(null);
-              window.scrollTo(0, 0);
+              scrollContainerRef.current?.scrollTo(0, 0);
             }}
           >
             <span className="bottom-nav-icon">{icon}</span>
