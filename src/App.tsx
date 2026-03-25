@@ -376,6 +376,7 @@ export default function HyroxApp() {
   // Plan state
   const [activePlan, setActivePlan] = useState<any>(null);
   const [generatingPlan, setGeneratingPlan] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
   const [expandedWeek, setExpandedWeek] = useState<number | null>(0);
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
   const [planForm, setPlanForm] = useState({ raceDate: "", fitnessLevel: "intermediate", daysPerWeek: 4, focusAreas: [] as string[], hasGym: true, division: "open" });
@@ -541,7 +542,9 @@ export default function HyroxApp() {
     await loadWorkouts();
     setBlocks([emptyBlock()]);
     setWorkoutName("");
-    setTab("dashboard");
+    setLogDate(new Date().toISOString().split("T")[0]);
+    setSaveSuccess(true);
+    setTimeout(() => setSaveSuccess(false), 3000);
   }
 
   // ---------------------------------------------------------------------------
@@ -1055,6 +1058,13 @@ export default function HyroxApp() {
               <div style={{ fontSize: "2.4rem", letterSpacing: 3 }}>LOG WORKOUT</div>
             </div>
 
+            {saveSuccess && (
+              <div style={{ background: "#0a1f10", border: "1px solid #1e5c2a", borderRadius: 8, padding: "12px 16px", marginBottom: 16, display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ color: "#44cc88", fontSize: "1.1rem" }}>✓</span>
+                <span style={{ color: "#44cc88", fontFamily: "'DM Sans'", fontSize: "0.88rem", letterSpacing: 2 }}>WORKOUT SAVED</span>
+              </div>
+            )}
+
             <div className="card" style={{ marginBottom: 16 }}>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
                 <div>
@@ -1124,9 +1134,17 @@ export default function HyroxApp() {
                         </label>
                         <input
                           className="input-field"
-                          placeholder="e.g. 4:30"
+                          type="tel"
+                          placeholder="e.g. 430"
                           value={block.timeInput}
                           onChange={(e) => updateBlock(block.id, "timeInput", e.target.value)}
+                          onBlur={(e) => {
+                            const raw = e.target.value.replace(/[^0-9]/g, "");
+                            if (raw.length >= 3) {
+                              const formatted = raw.slice(0, -2) + ":" + raw.slice(-2);
+                              updateBlock(block.id, "timeInput", formatted);
+                            }
+                          }}
                         />
                       </div>
                     </div>
