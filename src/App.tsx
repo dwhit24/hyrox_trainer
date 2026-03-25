@@ -963,6 +963,30 @@ export default function HyroxApp() {
                     ))
                   )}
                 </div>
+
+                {/* PRs card */}
+                <div
+                  className="card"
+                  onClick={() => setTab("prs")}
+                  style={{ marginTop: 14, cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", transition: "border-color 0.2s" }}
+                  onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.borderColor = "#ff3c00")}
+                  onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.borderColor = "#1c1c1c")}
+                >
+                  <div>
+                    <div style={{ fontSize: "1.1rem", letterSpacing: 3, color: "#666", marginBottom: 6 }}>STATION PRs</div>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                      {EXERCISE_TYPES.filter(ex => prs[ex.id]).slice(0, 4).map(ex => (
+                        <div key={ex.id} style={{ fontFamily: "'DM Sans'", fontSize: "0.78rem", color: "#888" }}>
+                          {ex.icon} <span style={{ color: "#ff7b00" }}>{formatTime(prs[ex.id]?.time)}</span>
+                        </div>
+                      ))}
+                      {EXERCISE_TYPES.filter(ex => prs[ex.id]).length === 0 && (
+                        <div style={{ fontFamily: "'DM Sans'", fontSize: "0.82rem", color: "#333" }}>Log workouts to track your PRs</div>
+                      )}
+                    </div>
+                  </div>
+                  <div style={{ color: "#333", fontSize: "1rem", marginLeft: 10 }}>›</div>
+                </div>
               </>
             )}
           </div>
@@ -1502,7 +1526,6 @@ export default function HyroxApp() {
           ["log", "➕", "Log"],
           ["plan", "📅", "Plan"],
           ["history", "📋", "History"],
-          ["prs", "🥇", "PRs"],
           ["coach", "💬", "Coach"],
         ] as [string, string, string][]).map(([t, icon, label]) => (
           <button
