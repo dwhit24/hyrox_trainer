@@ -1602,6 +1602,7 @@ export default function HyroxApp() {
             onClick={() => {
               setTab(t);
               if (t !== "history") setViewingWorkout(null);
+              window.scrollTo({ top: 0, behavior: "instant" });
             }}
           >
             <span className="bottom-nav-icon">{icon}</span>
