@@ -27,6 +27,243 @@ const EXERCISE_TYPES = [
 
 const UNIT_OPTIONS = ["m", "km", "reps", "min"];
 
+const FOCUS_AREAS = [
+  { id: "running", label: "Running" },
+  { id: "skierg", label: "SkiErg" },
+  { id: "sled", label: "Sled Push/Pull" },
+  { id: "carries", label: "Carries & Lunges" },
+  { id: "wall_balls", label: "Wall Balls" },
+  { id: "rowing", label: "Rowing" },
+  { id: "strength", label: "Strength" },
+];
+
+// ---------------------------------------------------------------------------
+// Plan generation helpers
+// ---------------------------------------------------------------------------
+function buildExercises(type: string, phase: string, level: string): any[] {
+  const isPeak = phase === "peak";
+  const isBuild = phase === "build";
+  const isTaper = phase === "taper";
+  const adv = level === "competitive";
+  const beg = level === "beginner";
+
+  if (type === "strength_lower") {
+    if (isTaper) return [
+      { name: "Back Squat", sets: 3, reps: "5", weight: "Moderate — keep it crisp" },
+      { name: "Romanian Deadlift", sets: 3, reps: "8", weight: "Moderate" },
+      { name: "Walking Lunges", sets: 2, reps: "8/leg", weight: "Bodyweight" },
+    ];
+    if (isPeak) return [
+      { name: "Back Squat", sets: 4, reps: adv ? "4-5" : "5-6", weight: adv ? "85% 1RM" : "Heavy" },
+      { name: "Romanian Deadlift", sets: 4, reps: "6-8", weight: "Heavy" },
+      { name: "Hip Thrust", sets: 3, reps: "8-10", weight: "Heavy" },
+      { name: "Weighted Walking Lunges", sets: 4, reps: "10/leg", weight: "Moderate-heavy" },
+      { name: "Box Step-Up", sets: 3, reps: "8/leg", weight: "Moderate" },
+    ];
+    if (isBuild) return [
+      { name: "Back Squat", sets: 4, reps: "6-8", weight: "70-75% 1RM" },
+      { name: "Romanian Deadlift", sets: 3, reps: "8-10", weight: "Moderate-heavy" },
+      { name: "Hip Thrust", sets: 3, reps: "10-12", weight: "Moderate-heavy" },
+      { name: "Walking Lunges", sets: 3, reps: "12/leg", weight: beg ? "Bodyweight" : "Light dumbbells" },
+      { name: "Calf Raises", sets: 3, reps: "20" },
+    ];
+    return [
+      { name: "Back Squat", sets: 3, reps: "8-10", weight: beg ? "Bodyweight or light bar" : "60-65% 1RM" },
+      { name: "Romanian Deadlift", sets: 3, reps: "10-12", weight: "Moderate" },
+      { name: "Hip Thrust", sets: 3, reps: "12-15", weight: "Light-moderate" },
+      { name: "Walking Lunges", sets: 3, reps: "10/leg", weight: "Bodyweight" },
+    ];
+  }
+
+  if (type === "strength_upper") {
+    if (isTaper) return [
+      { name: "Bent-Over Row", sets: 3, reps: "6", weight: "Moderate" },
+      { name: "Overhead Press", sets: 3, reps: "6", weight: "Moderate" },
+      { name: "Farmer Carry", sets: 3, distance: "30m", weight: "Moderate" },
+    ];
+    if (isPeak) return [
+      { name: "Bent-Over Row", sets: 4, reps: adv ? "5-6" : "6-8", weight: "Heavy" },
+      { name: "Overhead Press", sets: 4, reps: "6-8", weight: "Heavy" },
+      { name: "Pull-Ups", sets: 4, reps: "6-8", notes: "Weighted if able" },
+      { name: "Face Pulls", sets: 3, reps: "15", weight: "Light" },
+      { name: "Farmer Carry", sets: 4, distance: "50m", weight: "Heavy — race-weight kettlebells" },
+    ];
+    if (isBuild) return [
+      { name: "Bent-Over Row", sets: 4, reps: "8-10", weight: "Moderate-heavy" },
+      { name: "Overhead Press", sets: 3, reps: "8-10", weight: "Moderate" },
+      { name: "Pull-Ups or Lat Pulldown", sets: 3, reps: "8-10" },
+      { name: "Face Pulls", sets: 3, reps: "15-20", weight: "Light" },
+      { name: "Farmer Carry", sets: 4, distance: "40m", weight: "Heavy" },
+    ];
+    return [
+      { name: "Bent-Over Row", sets: 3, reps: "10-12", weight: "Moderate" },
+      { name: "Overhead Press", sets: 3, reps: "10-12", weight: "Light-moderate" },
+      { name: "Lat Pulldown", sets: 3, reps: "12-15", weight: "Moderate" },
+      { name: "Face Pulls", sets: 3, reps: "15-20", weight: "Light" },
+      { name: "Farmer Carry", sets: 3, distance: "30m", weight: "Moderate kettlebells" },
+    ];
+  }
+
+  if (type === "stations") {
+    if (isTaper) return [
+      { name: "SkiErg", sets: 3, distance: "500m", notes: "Easy effort, 2min rest" },
+      { name: "Rowing", sets: 3, distance: "500m", notes: "Easy effort, 2min rest" },
+      { name: "Wall Balls", sets: 2, reps: "15 reps", notes: "Light, 90s rest" },
+    ];
+    if (isPeak) return [
+      { name: "SkiErg", sets: adv ? 5 : 4, distance: "750m", notes: "Race pace, 2min rest" },
+      { name: "Rowing", sets: adv ? 5 : 4, distance: "750m", notes: "Race pace, 2min rest" },
+      { name: "Burpee Broad Jump", sets: 4, distance: "25m", notes: "Max effort, 90s rest" },
+      { name: "Wall Balls", sets: 4, reps: "25 reps", notes: "Race weight, 90s rest" },
+    ];
+    if (isBuild) return [
+      { name: "SkiErg", sets: 4, distance: "500m", notes: "Strong effort, 90s rest" },
+      { name: "Rowing", sets: 4, distance: "500m", notes: "Strong effort, 90s rest" },
+      { name: "Burpee Broad Jump", sets: 4, distance: "20m", notes: "80% effort, 75s rest" },
+      { name: "Wall Balls", sets: 4, reps: "20 reps", notes: "Race weight, 75s rest" },
+    ];
+    return [
+      { name: "SkiErg", sets: 3, distance: "500m", notes: "Moderate effort, 2min rest" },
+      { name: "Rowing", sets: 3, distance: "500m", notes: "Moderate effort, 2min rest" },
+      { name: "Burpee Broad Jump", sets: 3, distance: "15m", notes: "Controlled, 90s rest" },
+      { name: "Wall Balls", sets: 3, reps: "15 reps", notes: "Moderate weight, 90s rest" },
+    ];
+  }
+
+  if (type === "sled_carry") {
+    if (isTaper) return [
+      { name: "Sled Push", sets: 3, distance: "25m", notes: "Moderate load, 2min rest" },
+      { name: "Sled Pull", sets: 3, distance: "25m", notes: "Moderate load, 2min rest" },
+      { name: "Sandbag Lunges", sets: 2, distance: "20m", notes: "Race weight, 2min rest" },
+    ];
+    if (isPeak) return [
+      { name: "Sled Push", sets: adv ? 7 : 6, distance: "25m", notes: "Race weight + 10%, 2min rest" },
+      { name: "Sled Pull", sets: adv ? 7 : 6, distance: "25m", notes: "Race weight + 10%, 2min rest" },
+      { name: "Farmer Carry", sets: 4, distance: "50m", notes: "Heavy, 90s rest" },
+      { name: "Sandbag Lunges", sets: 4, distance: "25m", notes: "Race weight, 90s rest" },
+    ];
+    if (isBuild) return [
+      { name: "Sled Push", sets: 5, distance: "25m", notes: "Moderate-heavy, 2min rest" },
+      { name: "Sled Pull", sets: 5, distance: "25m", notes: "Moderate-heavy, 2min rest" },
+      { name: "Farmer Carry", sets: 4, distance: "40m", notes: "Heavy, 90s rest" },
+      { name: "Sandbag Lunges", sets: 3, distance: "20m", notes: "Moderate weight, 90s rest" },
+    ];
+    return [
+      { name: "Sled Push", sets: 4, distance: "25m", notes: "Light-moderate load, 2min rest" },
+      { name: "Sled Pull", sets: 4, distance: "25m", notes: "Light-moderate load, 2min rest" },
+      { name: "Farmer Carry", sets: 3, distance: "30m", notes: "Moderate kettlebells, 90s rest" },
+      { name: "Sandbag Lunges", sets: 3, distance: "15m", notes: "Light sandbag, 90s rest" },
+    ];
+  }
+  return [];
+}
+
+function buildRunSession(phase: string, level: string, runType: string): any {
+  const adv = level === "competitive";
+  const beg = level === "beginner";
+  const isTaper = phase === "taper";
+  const isPeak = phase === "peak";
+  const isBuild = phase === "build";
+
+  if (runType === "easy") {
+    const dist = isTaper ? "3km" : isPeak ? (adv ? "6km" : "5km") : isBuild ? (adv ? "5km" : "4km") : beg ? "3km" : "4km";
+    return { type: "run", name: "Easy Run", description: "Zone 2 — conversational pace the whole way. Build your aerobic base.", duration: parseInt(dist) * 7, exercises: [{ name: "Easy run", distance: dist, notes: "Zone 2, conversational pace, 60-70% max HR" }] };
+  }
+  if (runType === "tempo") {
+    const dist = isPeak ? (adv ? "5km" : "4km") : adv ? "4km" : "3km";
+    return { type: "run", name: "Tempo Run", description: "Comfortably hard — you can speak a few words but not a full sentence.", duration: 35, exercises: [{ name: "Warm-up jog", distance: "1km" }, { name: "Tempo run", distance: dist, notes: "Race pace or slightly faster" }, { name: "Cool-down jog", distance: "1km" }] };
+  }
+  if (runType === "intervals") {
+    const sets = isPeak ? (adv ? 8 : 6) : adv ? 6 : 5;
+    const dist = isPeak ? "600m" : "400m";
+    return { type: "run", name: "Run Intervals", description: "Hard effort with full recovery between reps. Quality over quantity.", duration: 45, exercises: [{ name: "Warm-up jog", distance: "1km", notes: "Easy + strides" }, { name: `${dist} repeats`, sets, reps: `×${dist}`, notes: `Race effort, ${isPeak ? "2min" : "90s"} rest` }, { name: "Cool-down jog", distance: "1km" }] };
+  }
+  if (runType === "long") {
+    const dist = isPeak ? (adv ? "10km" : "8km") : isBuild ? (adv ? "8km" : "6km") : adv ? "6km" : "5km";
+    return { type: "run", name: "Long Run", description: "Build aerobic base and mental toughness. Keep it easy — Zone 2 all the way.", duration: parseInt(dist) * 6, exercises: [{ name: "Long easy run", distance: dist, notes: "Zone 2 the whole way" }] };
+  }
+  return { type: "run", name: "Run", exercises: [] };
+}
+
+function buildRaceSimSession(full: boolean): any {
+  if (full) return {
+    type: "race_sim", name: "Full Race Simulation", description: "Complete Hyrox format at race effort. Treat it exactly like race day.", duration: 90,
+    exercises: [
+      { name: "1km Run", notes: "Race pace" }, { name: "SkiErg — 1000m" }, { name: "1km Run" }, { name: "Sled Push — 50m" },
+      { name: "1km Run" }, { name: "Sled Pull — 50m" }, { name: "1km Run" }, { name: "Burpee Broad Jump — 80m" },
+      { name: "1km Run" }, { name: "Rowing — 1000m" }, { name: "1km Run" }, { name: "Farmers Carry — 200m" },
+      { name: "1km Run" }, { name: "Sandbag Lunges — 100m" }, { name: "1km Run" }, { name: "Wall Balls — 100 reps" },
+    ],
+  };
+  return {
+    type: "race_sim", name: "Half Race Simulation", description: "4 runs + 4 stations at race effort. Perfect peak week sharpener.", duration: 55,
+    exercises: [
+      { name: "1km Run", notes: "Race pace" }, { name: "SkiErg — 500m", notes: "Race effort" },
+      { name: "1km Run" }, { name: "Sled Push — 25m", notes: "Race weight" },
+      { name: "1km Run" }, { name: "Rowing — 500m", notes: "Race effort" },
+      { name: "1km Run" }, { name: "Wall Balls — 50 reps", notes: "Race weight" },
+    ],
+  };
+}
+
+function generateWeekSessions(phase: string, form: any): any[] {
+  const { daysPerWeek, fitnessLevel } = form;
+  const isPeak = phase === "peak";
+  const isBuild = phase === "build";
+  const isCompetitive = fitnessLevel === "competitive";
+  const runType = isPeak ? "intervals" : isBuild ? "tempo" : "easy";
+
+  const templates: Record<number, any[]> = {
+    3: [
+      { type: "strength", name: "Lower Body Strength", description: "Squats, deadlifts, and posterior chain work to power your sled and lunges.", duration: 55, exercises: buildExercises("strength_lower", phase, fitnessLevel) },
+      { type: "station", name: "Station Intervals", description: "Hyrox station-specific work. Focus on pacing and form over raw speed.", duration: 50, exercises: buildExercises("stations", phase, fitnessLevel) },
+      buildRunSession(phase, fitnessLevel, runType),
+    ],
+    4: [
+      { type: "strength", name: "Lower Body Strength", description: "Squats, deadlifts, and posterior chain work.", duration: 55, exercises: buildExercises("strength_lower", phase, fitnessLevel) },
+      { type: "station", name: "Station Intervals", description: "Hyrox station-specific work.", duration: 50, exercises: buildExercises("stations", phase, fitnessLevel) },
+      buildRunSession(phase, fitnessLevel, "easy"),
+      isPeak ? buildRaceSimSession(isCompetitive) : { type: "strength", name: "Upper Body & Pull", description: "Rowing strength, carries, and upper body pulling power.", duration: 50, exercises: buildExercises("strength_upper", phase, fitnessLevel) },
+    ],
+    5: [
+      { type: "strength", name: "Lower Body Strength", description: "Squats, deadlifts, and posterior chain work.", duration: 55, exercises: buildExercises("strength_lower", phase, fitnessLevel) },
+      { type: "station", name: "Station Intervals", description: "Hyrox station-specific work.", duration: 50, exercises: buildExercises("stations", phase, fitnessLevel) },
+      buildRunSession(phase, fitnessLevel, "easy"),
+      { type: "strength", name: "Upper Body & Pull", description: "Rowing strength, carries, and upper body pulling power.", duration: 50, exercises: buildExercises("strength_upper", phase, fitnessLevel) },
+      isPeak ? buildRaceSimSession(isCompetitive) : buildRunSession(phase, fitnessLevel, isBuild ? "tempo" : "intervals"),
+    ],
+    6: [
+      { type: "strength", name: "Lower Body Strength", description: "Squats, deadlifts, and posterior chain work.", duration: 55, exercises: buildExercises("strength_lower", phase, fitnessLevel) },
+      { type: "station", name: "Station Intervals", description: "Hyrox station-specific cardio work.", duration: 50, exercises: buildExercises("stations", phase, fitnessLevel) },
+      buildRunSession(phase, fitnessLevel, "easy"),
+      { type: "strength", name: "Upper Body & Pull", description: "Rowing strength, carries, and upper body pulling power.", duration: 50, exercises: buildExercises("strength_upper", phase, fitnessLevel) },
+      { type: "station", name: "Sled & Carry Work", description: "Sled push/pull and loaded carries — the race makers or breakers.", duration: 55, exercises: buildExercises("sled_carry", phase, fitnessLevel) },
+      isPeak ? buildRaceSimSession(isCompetitive) : buildRunSession(phase, fitnessLevel, "long"),
+    ],
+  };
+
+  return (templates[daysPerWeek] || templates[4]).map((s: any, i: number) => ({ ...s, dayNumber: i + 1 }));
+}
+
+function generatePlan(form: { raceDate: string; fitnessLevel: string; daysPerWeek: number; focusAreas: string[]; hasGym: boolean }) {
+  const today = new Date();
+  let weeksTotal = 8;
+  if (form.raceDate) {
+    const diffWeeks = Math.round((new Date(form.raceDate).getTime() - today.getTime()) / (7 * 24 * 60 * 60 * 1000));
+    weeksTotal = Math.max(4, Math.min(20, diffWeeks));
+  }
+  const baseEnd = Math.max(1, Math.ceil(weeksTotal * 0.35));
+  const buildEnd = Math.max(baseEnd + 1, Math.ceil(weeksTotal * 0.70));
+  const peakEnd = Math.max(buildEnd + 1, Math.ceil(weeksTotal * 0.90));
+
+  const weeks = Array.from({ length: weeksTotal }, (_, i) => {
+    const w = i + 1;
+    const phase = w > peakEnd ? "taper" : w > buildEnd ? "peak" : w > baseEnd ? "build" : "base";
+    return { weekNumber: w, phase, sessions: generateWeekSessions(phase, form) };
+  });
+  return { ...form, weeksTotal, weeks };
+}
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -124,6 +361,13 @@ export default function HyroxApp() {
   const [addingExercise, setAddingExercise] = useState(false);
   const [viewingWorkout, setViewingWorkout] = useState<any>(null);
 
+  // Plan state
+  const [activePlan, setActivePlan] = useState<any>(null);
+  const [generatingPlan, setGeneratingPlan] = useState(false);
+  const [expandedWeek, setExpandedWeek] = useState<number | null>(0);
+  const [expandedDay, setExpandedDay] = useState<string | null>(null);
+  const [planForm, setPlanForm] = useState({ raceDate: "", fitnessLevel: "intermediate", daysPerWeek: 4, focusAreas: [] as string[], hasGym: true });
+
   // AI Coach state
   const [aiMessages, setAiMessages] = useState([
     { role: "assistant", content: "Hey athlete 👋 I'm your Hyrox AI coach. Ask me anything — race strategy, training plans, station tips, or review your progress." },
@@ -150,6 +394,7 @@ export default function HyroxApp() {
       setUser(session?.user ?? null);
       if (session?.user) {
         loadWorkouts();
+        loadPlan();
       } else {
         setAuthLoading(false);
       }
@@ -162,6 +407,7 @@ export default function HyroxApp() {
       setUser(currentUser);
       if (currentUser) {
         loadWorkouts();
+        loadPlan();
       } else {
         setWorkoutLog([]);
         setAuthLoading(false);
@@ -215,6 +461,31 @@ export default function HyroxApp() {
     }
     setDataLoading(false);
     setAuthLoading(false);
+  }
+
+  async function loadPlan() {
+    const { data } = await supabase
+      .from("training_plans")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (data) setActivePlan(data);
+  }
+
+  async function savePlan(planData: any) {
+    setGeneratingPlan(true);
+    await supabase.from("training_plans").delete().gte("created_at", "2000-01-01");
+    const { data } = await supabase.from("training_plans").insert({
+      race_date: planData.raceDate || null,
+      fitness_level: planData.fitnessLevel,
+      days_per_week: planData.daysPerWeek,
+      focus_areas: planData.focusAreas,
+      has_gym: planData.hasGym,
+      weeks_data: planData.weeks,
+    }).select().single();
+    if (data) setActivePlan(data);
+    setGeneratingPlan(false);
   }
 
   async function saveWorkout() {
@@ -1078,11 +1349,158 @@ export default function HyroxApp() {
 
       </div>
 
+      {/* ──────────── TRAINING PLAN ──────────── */}
+      {tab === "plan" && (
+        <div className="fade-up">
+          {!activePlan ? (
+            <div>
+              <div style={{ marginBottom: 24 }}>
+                <div style={{ fontSize: "0.72rem", color: "#555", letterSpacing: 3, fontFamily: "'DM Sans'", marginBottom: 3 }}>YOUR PROGRAM</div>
+                <div style={{ fontSize: "2.4rem", letterSpacing: 3 }}>TRAINING PLAN</div>
+                <div style={{ fontSize: "0.82rem", color: "#555", fontFamily: "'DM Sans'", marginTop: 6 }}>Answer a few questions and get a personalized Hyrox training plan.</div>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+                <div>
+                  <div style={{ fontSize: "0.72rem", color: "#888", letterSpacing: 2, marginBottom: 7, fontFamily: "'DM Sans'" }}>RACE DATE (optional)</div>
+                  <input type="date" className="input-field" value={planForm.raceDate} onChange={(e) => setPlanForm(f => ({ ...f, raceDate: e.target.value }))} />
+                </div>
+                <div>
+                  <div style={{ fontSize: "0.72rem", color: "#888", letterSpacing: 2, marginBottom: 8, fontFamily: "'DM Sans'" }}>FITNESS LEVEL</div>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    {["beginner", "intermediate", "competitive"].map(lv => (
+                      <button key={lv} onClick={() => setPlanForm(f => ({ ...f, fitnessLevel: lv }))} style={{ flex: 1, padding: "10px 4px", background: planForm.fitnessLevel === lv ? "#ff3c00" : "#161616", border: `1px solid ${planForm.fitnessLevel === lv ? "#ff3c00" : "#252525"}`, color: planForm.fitnessLevel === lv ? "#fff" : "#666", borderRadius: 5, cursor: "pointer", fontFamily: "'Bebas Neue'", fontSize: "0.85rem", letterSpacing: 1, transition: "all 0.15s", textTransform: "capitalize" as const }}>{lv}</button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: "0.72rem", color: "#888", letterSpacing: 2, marginBottom: 8, fontFamily: "'DM Sans'" }}>DAYS PER WEEK</div>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    {[3, 4, 5, 6].map(d => (
+                      <button key={d} onClick={() => setPlanForm(f => ({ ...f, daysPerWeek: d }))} style={{ flex: 1, padding: "10px 4px", background: planForm.daysPerWeek === d ? "#ff3c00" : "#161616", border: `1px solid ${planForm.daysPerWeek === d ? "#ff3c00" : "#252525"}`, color: planForm.daysPerWeek === d ? "#fff" : "#666", borderRadius: 5, cursor: "pointer", fontFamily: "'Bebas Neue'", fontSize: "1.1rem", letterSpacing: 1, transition: "all 0.15s" }}>{d}</button>
+                    ))}
+                  </div>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 16px", background: "#111", border: "1px solid #1c1c1c", borderRadius: 8 }}>
+                  <div>
+                    <div style={{ fontFamily: "'DM Sans'", fontSize: "0.9rem", color: "#ddd" }}>Gym Access</div>
+                    <div style={{ fontFamily: "'DM Sans'", fontSize: "0.72rem", color: "#555", marginTop: 2 }}>Sled, SkiErg, rower available</div>
+                  </div>
+                  <button onClick={() => setPlanForm(f => ({ ...f, hasGym: !f.hasGym }))} style={{ width: 48, height: 26, background: planForm.hasGym ? "#ff3c00" : "#252525", borderRadius: 13, border: "none", cursor: "pointer", position: "relative", transition: "background 0.2s", flexShrink: 0 }}>
+                    <div style={{ position: "absolute", top: 3, left: planForm.hasGym ? 25 : 3, width: 20, height: 20, background: "#fff", borderRadius: 10, transition: "left 0.2s" }} />
+                  </button>
+                </div>
+                <div>
+                  <div style={{ fontSize: "0.72rem", color: "#888", letterSpacing: 2, marginBottom: 8, fontFamily: "'DM Sans'" }}>WEAK AREAS TO FOCUS ON (optional)</div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                    {FOCUS_AREAS.map(area => {
+                      const sel = planForm.focusAreas.includes(area.id);
+                      return (
+                        <button key={area.id} onClick={() => setPlanForm(f => ({ ...f, focusAreas: sel ? f.focusAreas.filter(a => a !== area.id) : [...f.focusAreas, area.id] }))} className="ex-pill" style={{ borderColor: sel ? "#ff3c00" : undefined, color: sel ? "#ff3c00" : undefined }}>{area.label}</button>
+                      );
+                    })}
+                  </div>
+                </div>
+                <button className="btn-primary" style={{ width: "100%", marginTop: 4 }} disabled={generatingPlan} onClick={async () => { const plan = generatePlan(planForm); await savePlan(plan); }}>
+                  {generatingPlan ? "GENERATING..." : "GENERATE PLAN"}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <div style={{ marginBottom: 18, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <div>
+                  <div style={{ fontSize: "0.72rem", color: "#555", letterSpacing: 3, fontFamily: "'DM Sans'", marginBottom: 3 }}>YOUR PROGRAM</div>
+                  <div style={{ fontSize: "2.4rem", letterSpacing: 3 }}>TRAINING PLAN</div>
+                </div>
+                <button className="btn-ghost" style={{ fontSize: "0.75rem", marginTop: 6 }} onClick={() => { setActivePlan(null); }}>REBUILD</button>
+              </div>
+              <div className="card" style={{ marginBottom: 18, display: "flex", gap: 0 }}>
+                {[
+                  { val: activePlan.weeks_data?.length || 0, label: "WEEKS" },
+                  { val: activePlan.days_per_week, label: "DAYS/WK" },
+                  { val: (activePlan.fitness_level || "").slice(0, 4).toUpperCase(), label: "LEVEL" },
+                  ...(activePlan.race_date ? [{ val: new Date(activePlan.race_date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" }), label: "RACE" }] : []),
+                ].map((s, i) => (
+                  <div key={i} style={{ flex: 1, textAlign: "center", borderRight: i < 2 ? "1px solid #1c1c1c" : "none", padding: "4px 0" }}>
+                    <div style={{ fontSize: "1.6rem", color: "#ff3c00", fontFamily: "'Bebas Neue'", letterSpacing: 2 }}>{s.val}</div>
+                    <div style={{ fontSize: "0.6rem", color: "#555", letterSpacing: 2, fontFamily: "'DM Sans'" }}>{s.label}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {(activePlan.weeks_data || []).map((week: any, wi: number) => {
+                  const phaseColor: Record<string, string> = { base: "#3b9eff", build: "#ff9900", peak: "#ff3c00", taper: "#44cc88" };
+                  const pc = phaseColor[week.phase] || "#888";
+                  const isWkOpen = expandedWeek === wi;
+                  return (
+                    <div key={wi} style={{ border: "1px solid #1c1c1c", borderRadius: 8, overflow: "hidden" }}>
+                      <button onClick={() => setExpandedWeek(isWkOpen ? null : wi)} style={{ width: "100%", background: "#111", border: "none", padding: "13px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", color: "#fff" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          <div style={{ fontFamily: "'Bebas Neue'", fontSize: "1.05rem", letterSpacing: 2 }}>WEEK {week.weekNumber}</div>
+                          <div style={{ fontSize: "0.62rem", background: pc + "22", color: pc, border: `1px solid ${pc}44`, borderRadius: 10, padding: "2px 8px", fontFamily: "'DM Sans'", letterSpacing: 1, textTransform: "uppercase" as const }}>{week.phase}</div>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <div style={{ fontSize: "0.72rem", color: "#555", fontFamily: "'DM Sans'" }}>{week.sessions?.length} days</div>
+                          <div style={{ color: "#444", fontSize: "0.75rem" }}>{isWkOpen ? "▲" : "▼"}</div>
+                        </div>
+                      </button>
+                      {isWkOpen && (
+                        <div style={{ background: "#0a0a0a", padding: "8px 10px", display: "flex", flexDirection: "column", gap: 5 }}>
+                          {(week.sessions || []).map((session: any, si: number) => {
+                            const sk = `${wi}-${si}`;
+                            const isDayOpen = expandedDay === sk;
+                            const tc: Record<string, string> = { strength: "#ff9900", station: "#ff3c00", run: "#3b9eff", race_sim: "#ff3c00", rest: "#444" };
+                            const ti: Record<string, string> = { strength: "💪", station: "⚡", run: "🏃", race_sim: "🏁", rest: "😴" };
+                            const sc = tc[session.type] || "#888";
+                            return (
+                              <div key={si} style={{ background: "#111", border: "1px solid #1a1a1a", borderRadius: 6, overflow: "hidden" }}>
+                                <button onClick={() => setExpandedDay(isDayOpen ? null : sk)} style={{ width: "100%", background: "none", border: "none", padding: "11px 13px", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", color: "#fff" }}>
+                                  <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+                                    <div style={{ fontSize: "1.05rem" }}>{ti[session.type] || "•"}</div>
+                                    <div style={{ textAlign: "left" }}>
+                                      <div style={{ fontFamily: "'DM Sans'", fontSize: "0.86rem", color: "#e0e0e0" }}>Day {session.dayNumber} — {session.name}</div>
+                                      <div style={{ fontSize: "0.7rem", color: "#555", fontFamily: "'DM Sans'", marginTop: 1 }}>{session.duration} min · <span style={{ color: sc }}>{session.type.replace("_", " ").toUpperCase()}</span></div>
+                                    </div>
+                                  </div>
+                                  <div style={{ color: "#444", fontSize: "0.72rem" }}>{isDayOpen ? "▲" : "▼"}</div>
+                                </button>
+                                {isDayOpen && (
+                                  <div style={{ padding: "4px 13px 13px", borderTop: "1px solid #1a1a1a" }}>
+                                    {session.description && <div style={{ fontSize: "0.78rem", color: "#555", fontFamily: "'DM Sans'", marginBottom: 10, lineHeight: 1.55, fontStyle: "italic" }}>{session.description}</div>}
+                                    {(session.exercises || []).map((ex: any, ei: number) => (
+                                      <div key={ei} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "7px 0", borderBottom: ei < session.exercises.length - 1 ? "1px solid #1a1a1a" : "none" }}>
+                                        <div style={{ fontFamily: "'DM Sans'", fontSize: "0.84rem", color: "#ccc", flex: 1 }}>
+                                          {ex.name}
+                                          {ex.notes && <div style={{ fontSize: "0.7rem", color: "#555", marginTop: 2 }}>{ex.notes}</div>}
+                                        </div>
+                                        <div style={{ textAlign: "right", fontFamily: "'DM Sans'", fontSize: "0.78rem", color: "#888", marginLeft: 10, flexShrink: 0 }}>
+                                          {ex.sets && ex.reps ? `${ex.sets}×${ex.reps}` : ex.sets && ex.distance ? `${ex.sets}×${ex.distance}` : ex.reps || ex.distance || ""}
+                                          {ex.weight && <div style={{ fontSize: "0.68rem", color: "#444", marginTop: 2 }}>{ex.weight}</div>}
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* ── Bottom Navigation ── */}
       <nav className="bottom-nav">
         {([
           ["dashboard", "🏠", "Home"],
           ["log", "➕", "Log"],
+          ["plan", "📅", "Plan"],
           ["history", "📋", "History"],
           ["prs", "🥇", "PRs"],
           ["coach", "💬", "Coach"],
