@@ -489,9 +489,11 @@ export default function HyroxApp() {
   }
 
   async function savePlan(planData: any) {
+    if (!user) return;
     setGeneratingPlan(true);
-    await supabase.from("training_plans").delete().gte("created_at", "2000-01-01");
-    const { data } = await supabase.from("training_plans").insert({
+    await supabase.from("training_plans").delete().eq("user_id", user.id);
+    const { data, error } = await supabase.from("training_plans").insert({
+      user_id: user.id,
       race_date: planData.raceDate || null,
       fitness_level: planData.fitnessLevel,
       days_per_week: planData.daysPerWeek,
@@ -500,6 +502,7 @@ export default function HyroxApp() {
       weeks_data: planData.weeks,
     }).select().single();
     if (data) setActivePlan(data);
+    if (error) console.error("Error saving plan:", error);
     setGeneratingPlan(false);
   }
 
