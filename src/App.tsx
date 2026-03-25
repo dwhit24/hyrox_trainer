@@ -889,7 +889,7 @@ export default function HyroxApp() {
   // Main app
   // ---------------------------------------------------------------------------
   return (
-    <div style={{ fontFamily: "'Bebas Neue', sans-serif", background: "#0a0a0a", height: "100vh", overflowY: "auto", overflowX: "hidden", overscrollBehavior: "none", color: "#f0f0f0" }}>
+    <div style={{ fontFamily: "'Bebas Neue', sans-serif", background: "#0a0a0a", minHeight: "100vh", overflowX: "hidden", color: "#f0f0f0" }}>
       <style>{GLOBAL_STYLES}</style>
 
       {/* ── Header ── */}
@@ -897,7 +897,10 @@ export default function HyroxApp() {
         style={{
           background: "#0c0c0c",
           borderBottom: "1px solid #1a1a1a",
-          padding: "0 20px",
+          paddingLeft: "20px",
+          paddingRight: "20px",
+          paddingTop: "env(safe-area-inset-top)",
+          paddingBottom: 0,
           position: "fixed",
           top: 0,
           left: 0,
@@ -906,7 +909,7 @@ export default function HyroxApp() {
         }}
       >
         <div style={{ maxWidth: 860, margin: "0 auto" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 14 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 14, paddingBottom: 12 }}>
             <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
               <span style={{ fontSize: "1.9rem", letterSpacing: 5, color: "#fff" }}>HYROX</span>
               <span style={{ fontSize: "0.8rem", color: "#ff3c00", fontFamily: "'DM Sans'", fontWeight: 700, letterSpacing: 2 }}>
@@ -928,7 +931,7 @@ export default function HyroxApp() {
       </div>
 
       {/* ── Content ── */}
-      <div style={{ maxWidth: 860, margin: "0 auto", padding: "24px 20px", paddingTop: "60px", paddingBottom: "calc(140px + env(safe-area-inset-bottom))" }}>
+      <div style={{ maxWidth: 860, margin: "0 auto", padding: "24px 20px", paddingTop: "calc(66px + env(safe-area-inset-top))", paddingBottom: "calc(140px + env(safe-area-inset-bottom))" }}>
 
         {/* ──────────── DASHBOARD ──────────── */}
         {tab === "dashboard" && (
