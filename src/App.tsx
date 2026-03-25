@@ -889,7 +889,7 @@ export default function HyroxApp() {
   // Main app
   // ---------------------------------------------------------------------------
   return (
-    <div style={{ fontFamily: "'Bebas Neue', sans-serif", background: "#0a0a0a", minHeight: "100vh", color: "#f0f0f0" }}>
+    <div style={{ fontFamily: "'Bebas Neue', sans-serif", background: "#0a0a0a", height: "100vh", overflowY: "auto", overflowX: "hidden", overscrollBehavior: "none", color: "#f0f0f0" }}>
       <style>{GLOBAL_STYLES}</style>
 
       {/* ── Header ── */}
@@ -928,7 +928,7 @@ export default function HyroxApp() {
       </div>
 
       {/* ── Content ── */}
-      <div style={{ maxWidth: 860, margin: "0 auto", padding: "24px 20px", paddingTop: "84px", paddingBottom: "calc(140px + env(safe-area-inset-bottom))" }}>
+      <div style={{ maxWidth: 860, margin: "0 auto", padding: "24px 20px", paddingTop: "60px", paddingBottom: "calc(140px + env(safe-area-inset-bottom))" }}>
 
         {/* ──────────── DASHBOARD ──────────── */}
         {tab === "dashboard" && (
