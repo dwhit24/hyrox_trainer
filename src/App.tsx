@@ -929,7 +929,7 @@ export default function HyroxApp() {
       </div>
 
       {/* ── Content ── */}
-      <div style={{ maxWidth: 860, margin: "0 auto", padding: "20px 20px", paddingTop: "70px", paddingBottom: "calc(160px + env(safe-area-inset-bottom))" }}>
+      <div style={{ maxWidth: 860, margin: "0 auto", padding: "20px 20px", paddingTop: "70px", paddingBottom: "calc(300px + env(safe-area-inset-bottom))" }}>
 
         {/* ──────────── DASHBOARD ──────────── */}
         {tab === "dashboard" && (
@@ -1609,7 +1609,7 @@ export default function HyroxApp() {
             onClick={() => {
               setTab(t);
               if (t !== "history") setViewingWorkout(null);
-              scrollContainerRef.current?.scrollTo(0, 0);
+              if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = 0;
             }}
           >
             <span className="bottom-nav-icon">{icon}</span>
