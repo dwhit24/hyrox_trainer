@@ -1421,7 +1421,6 @@ export default function HyroxApp() {
           </div>
         )}
 
-      </div>
 
       {/* ──────────── TRAINING PLAN ──────────── */}
       {tab === "plan" && (
@@ -1593,6 +1592,8 @@ export default function HyroxApp() {
           )}
         </div>
       )}
+
+      </div>
 
       {/* ── Bottom Navigation ── */}
       <nav className="bottom-nav">
