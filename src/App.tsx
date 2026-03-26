@@ -395,8 +395,14 @@ function parseTimeInput(val: string) {
 }
 
 function totalSeconds(blocks: any[]) {
-  return blocks.reduce((sum, b) => sum + (b.time || 0), 0);
+  return blocks.reduce((sum, b) => {
+    if (isStrengthCat(b.category)) return sum;
+    if (b.hyroxSets?.length) return sum + b.hyroxSets.reduce((s: number, hs: any) => s + (hs.time || 0), 0);
+    return sum + (b.time || 0);
+  }, 0);
 }
+
+const emptyHyroxSet = () => ({ dist: "", reps: "", weight: "", timeInput: "", time: 0 });
 
 const emptyBlock = () => ({
   id: Date.now() + Math.random(),
@@ -411,6 +417,8 @@ const emptyBlock = () => ({
   hyroxWeight: "",
   numSets: 3,
   sets: [{ reps: "", weight: "" }, { reps: "", weight: "" }, { reps: "", weight: "" }],
+  hyroxNumSets: 1,
+  hyroxSets: [emptyHyroxSet()],
   notes: "",
 });
 
@@ -481,6 +489,8 @@ export default function HyroxApp() {
   const [viewingWorkout, setViewingWorkout] = useState<any>(null);
   const [weightUnit, setWeightUnit] = useState<"kg" | "lbs">("kg");
   const [completedSessions, setCompletedSessions] = useState<Set<string>>(new Set());
+  const [lastSessions, setLastSessions] = useState<Record<string, any>>({});
+  const fetchedMovements = useRef<Set<string>>(new Set());
 
   // Profile state
   const [showProfileSetup, setShowProfileSetup] = useState(false);
@@ -659,16 +669,21 @@ export default function HyroxApp() {
       return;
     }
 
-    const blockInserts = validBlocks.map((b, i) => ({
-      workout_id: workout.id,
-      exercise_id: b.movementId || "custom",
-      distance: isStrengthCat(b.category) ? String(b.numSets) : b.distance,
-      unit: isStrengthCat(b.category) ? "sets" : b.unit,
-      time: b.time || 0,
-      time_input: b.timeInput || "",
-      notes: JSON.stringify({ category: b.category, customMovement: b.customMovement, sets: b.sets, weightUnit, hyroxWeight: b.hyroxWeight, notes: b.notes }),
-      block_order: i + 1,
-    }));
+    const blockInserts = validBlocks.map((b, i) => {
+      const isStr = isStrengthCat(b.category);
+      const hyroxTotal = (b.hyroxSets || []).reduce((s: number, hs: any) => s + (hs.time || 0), 0);
+      const hyroxFirstDist = b.hyroxSets?.[0]?.dist || b.distance || "";
+      return {
+        workout_id: workout.id,
+        exercise_id: b.movementId || "custom",
+        distance: isStr ? String(b.numSets) : hyroxFirstDist,
+        unit: isStr ? "sets" : b.unit,
+        time: isStr ? 0 : hyroxTotal,
+        time_input: b.timeInput || "",
+        notes: JSON.stringify({ category: b.category, customMovement: b.customMovement, sets: b.sets, hyroxSets: b.hyroxSets, weightUnit, hyroxWeight: b.hyroxWeight, notes: b.notes }),
+        block_order: i + 1,
+      };
+    });
 
     await supabase.from("workout_blocks").insert(blockInserts);
     await loadWorkouts();
@@ -723,6 +738,8 @@ export default function HyroxApp() {
           updated.movementId = "";
           updated.customMovement = "";
           updated.unit = "m";
+          updated.hyroxNumSets = 1;
+          updated.hyroxSets = [emptyHyroxSet()];
         }
         if (field === "numSets") {
           const n = Math.max(1, Number(value));
@@ -732,10 +749,21 @@ export default function HyroxApp() {
             : cur.slice(0, n);
           updated.numSets = n;
         }
+        if (field === "hyroxNumSets") {
+          const n = Math.max(1, Number(value));
+          const cur = b.hyroxSets || [];
+          updated.hyroxSets = n > cur.length
+            ? [...cur, ...Array(n - cur.length).fill(null).map(emptyHyroxSet)]
+            : cur.slice(0, n);
+          updated.hyroxNumSets = n;
+        }
         if (field === "timeInput") updated.time = parseTimeInput(value);
         return updated;
       })
     );
+    if (field === "movementId" && value && value !== "custom") {
+      fetchLastSession(value);
+    }
   }
 
   function updateSet(blockId: number, setIdx: number, field: "reps" | "weight", value: string) {
@@ -746,6 +774,36 @@ export default function HyroxApp() {
         return { ...b, sets };
       })
     );
+  }
+
+  function updateHyroxSet(blockId: number, setIdx: number, field: string, value: string) {
+    setBlocks((prev) =>
+      prev.map((b) => {
+        if (b.id !== blockId) return b;
+        const hyroxSets = (b.hyroxSets || []).map((s: any, i: number) => {
+          if (i !== setIdx) return s;
+          const upd = { ...s, [field]: value };
+          if (field === "timeInput") upd.time = parseTimeInput(value);
+          return upd;
+        });
+        return { ...b, hyroxSets };
+      })
+    );
+  }
+
+  async function fetchLastSession(movementId: string) {
+    if (!user || !movementId || movementId === "custom") return;
+    if (fetchedMovements.current.has(movementId)) return;
+    fetchedMovements.current.add(movementId);
+    const { data } = await supabase
+      .from("workout_blocks")
+      .select("*")
+      .eq("exercise_id", movementId)
+      .order("workout_id", { ascending: false })
+      .limit(1);
+    if (data?.[0]) {
+      setLastSessions((prev) => ({ ...prev, [movementId]: parseBlock(data[0]) }));
+    }
   }
 
   function addBlock() {
@@ -817,9 +875,9 @@ export default function HyroxApp() {
   function parseBlock(b: any) {
     try {
       const j = JSON.parse(b.notes);
-      if (j && j.category) return { ...b, category: j.category, customMovement: j.customMovement || "", sets: j.sets || null, weightUnit: j.weightUnit || "kg", hyroxWeight: j.hyroxWeight || "", parsedNotes: j.notes || "" };
+      if (j && j.category) return { ...b, category: j.category, customMovement: j.customMovement || "", sets: j.sets || null, hyroxSets: j.hyroxSets || null, weightUnit: j.weightUnit || "kg", hyroxWeight: j.hyroxWeight || "", parsedNotes: j.notes || "" };
     } catch {}
-    return { ...b, category: "hyrox", customMovement: "", sets: null, weightUnit: "kg", hyroxWeight: "", parsedNotes: b.notes || "" };
+    return { ...b, category: "hyrox", customMovement: "", sets: null, hyroxSets: null, weightUnit: "kg", hyroxWeight: "", parsedNotes: b.notes || "" };
   }
 
   // Compute PRs from workout log
@@ -1237,6 +1295,8 @@ export default function HyroxApp() {
                 const catColor = CATEGORY_META[block.category]?.color || "#ff3c00";
                 const movements = getMovementsForCategory(block.category);
                 const isStrength = isStrengthCat(block.category);
+                const isWallBalls = block.category === "hyrox" && block.movementId === WALL_BALLS_ID;
+                const isWeightedHyrox = block.category === "hyrox" && HYROX_WEIGHTED.includes(block.movementId) && !isWallBalls;
                 return (
                   <div key={block.id} className="block-card slide-in">
                     {/* Header row */}
@@ -1307,6 +1367,14 @@ export default function HyroxApp() {
                             <button onClick={() => setWeightUnit("lbs")} style={{ padding: "5px 12px", background: weightUnit === "lbs" ? catColor + "22" : "#111", border: `1px solid ${weightUnit === "lbs" ? catColor : "#252525"}`, borderLeft: "none", color: weightUnit === "lbs" ? catColor : "#555", borderRadius: "0 5px 5px 0", cursor: "pointer", fontFamily: "'DM Sans'", fontSize: "0.75rem", transition: "all 0.15s" }}>lbs</button>
                           </div>
                         </div>
+                        {/* Last session reference — strength */}
+                        {block.movementId && lastSessions[block.movementId]?.sets && (() => {
+                          const ls = lastSessions[block.movementId];
+                          const valid = ls.sets.filter((s: any) => s.reps);
+                          if (!valid.length) return null;
+                          const summary = valid.map((s: any, i: number) => `${i+1}: ${s.reps}×${s.weight||'—'}${ls.weightUnit||'kg'}`).join('  ·  ');
+                          return <div style={{ fontSize: "0.68rem", color: "#3a3a3a", fontFamily: "'DM Sans'", marginBottom: 10, letterSpacing: 0.3 }}>LAST&nbsp;&nbsp;<span style={{ color: "#555" }}>{summary}</span></div>;
+                        })()}
                         <div style={{ display: "flex", gap: 6, marginBottom: 6 }}>
                           <div style={{ width: 24, flexShrink: 0 }} />
                           <div style={{ flex: 1, fontSize: "0.6rem", color: "#444", letterSpacing: 2, fontFamily: "'DM Sans'", textAlign: "center" }}>REPS</div>
@@ -1321,65 +1389,93 @@ export default function HyroxApp() {
                         ))}
                       </div>
                     ) : (
-                      /* Hyrox / Cardio: conditional fields */
+                      /* Hyrox / Cardio: sets */
                       <div>
-                        {block.category === "hyrox" && block.movementId === WALL_BALLS_ID ? (
-                          /* Wall Balls: Reps + Weight + Time */
-                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 10 }}>
-                            <div>
-                              <label style={{ fontSize: "0.65rem", color: "#555", letterSpacing: 1, fontFamily: "'DM Sans'", display: "block", marginBottom: 4 }}>REPS</label>
-                              <input className="input-field" type="tel" placeholder="e.g. 100" value={block.distance} onChange={(e) => updateBlock(block.id, "distance", e.target.value)} />
-                            </div>
-                            <div>
-                              <label style={{ fontSize: "0.65rem", color: "#555", letterSpacing: 1, fontFamily: "'DM Sans'", display: "block", marginBottom: 4 }}>WEIGHT (kg)</label>
-                              <input className="input-field" type="tel" placeholder="e.g. 6" value={block.hyroxWeight} onChange={(e) => updateBlock(block.id, "hyroxWeight", e.target.value)} />
-                            </div>
-                            <div>
-                              <label style={{ fontSize: "0.65rem", color: "#555", letterSpacing: 1, fontFamily: "'DM Sans'", display: "block", marginBottom: 4 }}>TIME (mm:ss)</label>
-                              <input className="input-field" type="tel" placeholder="e.g. 430" value={block.timeInput} onChange={(e) => updateBlock(block.id, "timeInput", e.target.value)} onBlur={(e) => { const raw = e.target.value.replace(/[^0-9]/g,""); if(raw.length>=3){updateBlock(block.id,"timeInput",raw.slice(0,-2)+":"+raw.slice(-2));} }} />
-                            </div>
-                          </div>
-                        ) : block.category === "hyrox" && HYROX_WEIGHTED.includes(block.movementId) ? (
-                          /* Weighted Hyrox (sled push/pull, farmers carry, sandbag lunges): Dist + Unit + Weight + Time */
-                          <div style={{ display: "grid", gridTemplateColumns: "1fr 60px 1fr 1fr", gap: 8, marginBottom: 10 }}>
-                            <div>
-                              <label style={{ fontSize: "0.65rem", color: "#555", letterSpacing: 1, fontFamily: "'DM Sans'", display: "block", marginBottom: 4 }}>DIST</label>
-                              <input className="input-field" placeholder="e.g. 50" value={block.distance} onChange={(e) => updateBlock(block.id, "distance", e.target.value)} />
-                            </div>
-                            <div>
-                              <label style={{ fontSize: "0.65rem", color: "#555", letterSpacing: 1, fontFamily: "'DM Sans'", display: "block", marginBottom: 4 }}>UNIT</label>
-                              <select className="select-field" value={block.unit} onChange={(e) => updateBlock(block.id, "unit", e.target.value)}>
+                        {/* Unit (block-level) + Sets stepper */}
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                          {isWallBalls ? <div /> : (
+                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                              <span style={{ fontSize: "0.65rem", color: "#555", letterSpacing: 2, fontFamily: "'DM Sans'" }}>UNIT</span>
+                              <select className="select-field" value={block.unit} onChange={(e) => updateBlock(block.id, "unit", e.target.value)} style={{ width: 74, padding: "5px 8px" }}>
                                 {UNIT_OPTIONS.map((u) => <option key={u} value={u}>{u}</option>)}
                               </select>
                             </div>
-                            <div>
-                              <label style={{ fontSize: "0.65rem", color: "#555", letterSpacing: 1, fontFamily: "'DM Sans'", display: "block", marginBottom: 4 }}>WEIGHT (kg)</label>
-                              <input className="input-field" type="tel" placeholder="e.g. 75" value={block.hyroxWeight} onChange={(e) => updateBlock(block.id, "hyroxWeight", e.target.value)} />
-                            </div>
-                            <div>
-                              <label style={{ fontSize: "0.65rem", color: "#555", letterSpacing: 1, fontFamily: "'DM Sans'", display: "block", marginBottom: 4 }}>TIME (mm:ss)</label>
-                              <input className="input-field" type="tel" placeholder="e.g. 430" value={block.timeInput} onChange={(e) => updateBlock(block.id, "timeInput", e.target.value)} onBlur={(e) => { const raw = e.target.value.replace(/[^0-9]/g,""); if(raw.length>=3){updateBlock(block.id,"timeInput",raw.slice(0,-2)+":"+raw.slice(-2));} }} />
-                            </div>
-                          </div>
-                        ) : (
-                          /* Standard Hyrox / Cardio: Distance + Unit + Time */
-                          <div style={{ display: "grid", gridTemplateColumns: "1fr 72px 1fr", gap: 10, marginBottom: 10 }}>
-                            <div>
-                              <label style={{ fontSize: "0.65rem", color: "#555", letterSpacing: 1, fontFamily: "'DM Sans'", display: "block", marginBottom: 4 }}>DISTANCE</label>
-                              <input className="input-field" placeholder="e.g. 500" value={block.distance} onChange={(e) => updateBlock(block.id, "distance", e.target.value)} />
-                            </div>
-                            <div>
-                              <label style={{ fontSize: "0.65rem", color: "#555", letterSpacing: 1, fontFamily: "'DM Sans'", display: "block", marginBottom: 4 }}>UNIT</label>
-                              <select className="select-field" value={block.unit} onChange={(e) => updateBlock(block.id, "unit", e.target.value)}>
-                                {UNIT_OPTIONS.map((u) => <option key={u} value={u}>{u}</option>)}
-                              </select>
-                            </div>
-                            <div>
-                              <label style={{ fontSize: "0.65rem", color: "#555", letterSpacing: 1, fontFamily: "'DM Sans'", display: "block", marginBottom: 4 }}>TIME (mm:ss)</label>
-                              <input className="input-field" type="tel" placeholder="e.g. 430" value={block.timeInput} onChange={(e) => updateBlock(block.id, "timeInput", e.target.value)} onBlur={(e) => { const raw = e.target.value.replace(/[^0-9]/g,""); if(raw.length>=3){updateBlock(block.id,"timeInput",raw.slice(0,-2)+":"+raw.slice(-2));} }} />
+                          )}
+                          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                            <span style={{ fontSize: "0.65rem", color: "#555", letterSpacing: 2, fontFamily: "'DM Sans'" }}>SETS</span>
+                            <div style={{ display: "flex", alignItems: "center" }}>
+                              <button onClick={() => updateBlock(block.id, "hyroxNumSets", (block.hyroxNumSets || 1) - 1)} style={{ width: 30, height: 30, background: "#161616", border: "1px solid #252525", color: "#aaa", borderRadius: "5px 0 0 5px", cursor: "pointer", fontFamily: "'DM Sans'", fontSize: "1.1rem", display: "flex", alignItems: "center", justifyContent: "center" }}>−</button>
+                              <div style={{ width: 38, height: 30, background: catColor + "22", border: `1px solid ${catColor}`, borderLeft: "none", borderRight: "none", color: catColor, fontFamily: "'DM Sans'", fontSize: "0.9rem", display: "flex", alignItems: "center", justifyContent: "center" }}>{block.hyroxNumSets || 1}</div>
+                              <button onClick={() => updateBlock(block.id, "hyroxNumSets", (block.hyroxNumSets || 1) + 1)} style={{ width: 30, height: 30, background: "#161616", border: "1px solid #252525", color: "#aaa", borderRadius: "0 5px 5px 0", cursor: "pointer", fontFamily: "'DM Sans'", fontSize: "1.1rem", display: "flex", alignItems: "center", justifyContent: "center" }}>+</button>
                             </div>
                           </div>
-                        )}
+                        </div>
+
+                        {/* Last session reference — hyrox */}
+                        {block.movementId && lastSessions[block.movementId] && (() => {
+                          const ls = lastSessions[block.movementId];
+                          const lsSets = ls.hyroxSets?.filter((s: any) => s.dist || s.reps || s.time);
+                          let summary = "";
+                          if (lsSets?.length) {
+                            summary = lsSets.map((s: any, i: number) => {
+                              if (ls.exercise_id === WALL_BALLS_ID || ls.exerciseId === WALL_BALLS_ID) return `${i+1}: ${s.reps||'—'}r × ${s.weight||'—'}kg`;
+                              if (HYROX_WEIGHTED.includes(ls.exercise_id || ls.exerciseId)) return `${i+1}: ${s.dist||'—'}${ls.unit||'m'} @ ${s.weight||'—'}kg`;
+                              return `${i+1}: ${s.dist||'—'}${ls.unit||'m'}${s.time > 0 ? ` in ${formatTime(s.time)}` : ''}`;
+                            }).join('  ·  ');
+                          } else if (ls.distance) {
+                            summary = `${ls.distance}${ls.unit || 'm'}${ls.time > 0 ? ` in ${formatTime(ls.time)}` : ''}`;
+                          }
+                          if (!summary) return null;
+                          return <div style={{ fontSize: "0.68rem", color: "#3a3a3a", fontFamily: "'DM Sans'", marginBottom: 10, letterSpacing: 0.3 }}>LAST&nbsp;&nbsp;<span style={{ color: "#555" }}>{summary}</span></div>;
+                        })()}
+
+                        {/* Column headers */}
+                        <div style={{ display: "flex", gap: 6, marginBottom: 6 }}>
+                          <div style={{ width: 24, flexShrink: 0 }} />
+                          {isWallBalls ? (
+                            <>
+                              <div style={{ flex: 1, fontSize: "0.6rem", color: "#444", letterSpacing: 2, fontFamily: "'DM Sans'", textAlign: "center" }}>REPS</div>
+                              <div style={{ flex: 1, fontSize: "0.6rem", color: "#444", letterSpacing: 2, fontFamily: "'DM Sans'", textAlign: "center" }}>WEIGHT (kg)</div>
+                              <div style={{ flex: 1, fontSize: "0.6rem", color: "#444", letterSpacing: 2, fontFamily: "'DM Sans'", textAlign: "center" }}>TIME</div>
+                            </>
+                          ) : isWeightedHyrox ? (
+                            <>
+                              <div style={{ flex: 1.5, fontSize: "0.6rem", color: "#444", letterSpacing: 2, fontFamily: "'DM Sans'", textAlign: "center" }}>DIST</div>
+                              <div style={{ flex: 1, fontSize: "0.6rem", color: "#444", letterSpacing: 2, fontFamily: "'DM Sans'", textAlign: "center" }}>WEIGHT (kg)</div>
+                              <div style={{ flex: 1, fontSize: "0.6rem", color: "#444", letterSpacing: 2, fontFamily: "'DM Sans'", textAlign: "center" }}>TIME</div>
+                            </>
+                          ) : (
+                            <>
+                              <div style={{ flex: 1, fontSize: "0.6rem", color: "#444", letterSpacing: 2, fontFamily: "'DM Sans'", textAlign: "center" }}>DIST</div>
+                              <div style={{ flex: 1, fontSize: "0.6rem", color: "#444", letterSpacing: 2, fontFamily: "'DM Sans'", textAlign: "center" }}>TIME</div>
+                            </>
+                          )}
+                        </div>
+
+                        {/* Set rows */}
+                        {(block.hyroxSets || []).map((s: any, si: number) => (
+                          <div key={si} style={{ display: "flex", gap: 6, marginBottom: 6, alignItems: "center" }}>
+                            <div style={{ width: 24, fontSize: "0.7rem", color: "#444", fontFamily: "'DM Sans'", textAlign: "center", flexShrink: 0 }}>{si + 1}</div>
+                            {isWallBalls ? (
+                              <>
+                                <input className="input-field" type="tel" placeholder="—" value={s.reps} onChange={(e) => updateHyroxSet(block.id, si, "reps", e.target.value)} style={{ flex: 1, textAlign: "center" }} />
+                                <input className="input-field" type="tel" placeholder="—" value={s.weight} onChange={(e) => updateHyroxSet(block.id, si, "weight", e.target.value)} style={{ flex: 1, textAlign: "center" }} />
+                                <input className="input-field" type="tel" placeholder="—" value={s.timeInput} onChange={(e) => updateHyroxSet(block.id, si, "timeInput", e.target.value)} onBlur={(e) => { const raw = e.target.value.replace(/[^0-9]/g,""); if(raw.length>=3){updateHyroxSet(block.id,si,"timeInput",raw.slice(0,-2)+":"+raw.slice(-2));} }} style={{ flex: 1, textAlign: "center" }} />
+                              </>
+                            ) : isWeightedHyrox ? (
+                              <>
+                                <input className="input-field" type="tel" placeholder="—" value={s.dist} onChange={(e) => updateHyroxSet(block.id, si, "dist", e.target.value)} style={{ flex: 1.5, textAlign: "center" }} />
+                                <input className="input-field" type="tel" placeholder="—" value={s.weight} onChange={(e) => updateHyroxSet(block.id, si, "weight", e.target.value)} style={{ flex: 1, textAlign: "center" }} />
+                                <input className="input-field" type="tel" placeholder="—" value={s.timeInput} onChange={(e) => updateHyroxSet(block.id, si, "timeInput", e.target.value)} onBlur={(e) => { const raw = e.target.value.replace(/[^0-9]/g,""); if(raw.length>=3){updateHyroxSet(block.id,si,"timeInput",raw.slice(0,-2)+":"+raw.slice(-2));} }} style={{ flex: 1, textAlign: "center" }} />
+                              </>
+                            ) : (
+                              <>
+                                <input className="input-field" type="tel" placeholder="—" value={s.dist} onChange={(e) => updateHyroxSet(block.id, si, "dist", e.target.value)} style={{ flex: 1, textAlign: "center" }} />
+                                <input className="input-field" type="tel" placeholder="—" value={s.timeInput} onChange={(e) => updateHyroxSet(block.id, si, "timeInput", e.target.value)} onBlur={(e) => { const raw = e.target.value.replace(/[^0-9]/g,""); if(raw.length>=3){updateHyroxSet(block.id,si,"timeInput",raw.slice(0,-2)+":"+raw.slice(-2));} }} style={{ flex: 1, textAlign: "center" }} />
+                              </>
+                            )}
+                          </div>
+                        ))}
                       </div>
                     )}
 
@@ -1389,15 +1485,26 @@ export default function HyroxApp() {
                     </div>
 
                     {/* Live preview for hyrox/cardio */}
-                    {!isStrength && (block.distance || block.time > 0) && (
-                      <div style={{ marginTop: 10, padding: "7px 11px", background: "#141414", borderRadius: 5, fontFamily: "'DM Sans'", fontSize: "0.78rem", color: "#777", display: "flex", gap: 18, flexWrap: "wrap" }}>
-                        {block.distance && <span><strong style={{ color: "#ccc" }}>{block.distance}{block.unit}</strong></span>}
-                        {block.time > 0 && <span>⏱ <strong style={{ color: "#ff7b00" }}>{formatTime(block.time)}</strong></span>}
-                        {block.distance && block.time > 0 && block.unit === "m" && parseFloat(block.distance) > 0 && (
-                          <span>📈 <strong style={{ color: "#aaa" }}>{Math.round((block.time / parseFloat(block.distance)) * 1000)}s/km</strong></span>
-                        )}
-                      </div>
-                    )}
+                    {!isStrength && (() => {
+                      const hs = block.hyroxSets || [];
+                      const totalT = hs.reduce((s: number, x: any) => s + (x.time || 0), 0);
+                      const totalD = hs.reduce((s: number, x: any) => s + (parseFloat(x.dist) || 0), 0);
+                      const totalR = hs.reduce((s: number, x: any) => s + (parseInt(x.reps) || 0), 0);
+                      if (totalT === 0 && totalD === 0 && totalR === 0) return null;
+                      return (
+                        <div style={{ marginTop: 10, padding: "7px 11px", background: "#141414", borderRadius: 5, fontFamily: "'DM Sans'", fontSize: "0.78rem", color: "#777", display: "flex", gap: 18, flexWrap: "wrap" }}>
+                          {isWallBalls ? (
+                            totalR > 0 && <span><strong style={{ color: "#ccc" }}>{totalR} reps</strong></span>
+                          ) : (
+                            totalD > 0 && <span><strong style={{ color: "#ccc" }}>{Number.isInteger(totalD) ? totalD : totalD.toFixed(1)}{block.unit}</strong></span>
+                          )}
+                          {totalT > 0 && <span>⏱ <strong style={{ color: "#ff7b00" }}>{formatTime(totalT)}</strong></span>}
+                          {totalD > 0 && totalT > 0 && block.unit === "m" && !isWallBalls && (
+                            <span>📈 <strong style={{ color: "#aaa" }}>{Math.round((totalT / totalD) * 1000)}s/km</strong></span>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
                 );
               })}
@@ -1405,7 +1512,7 @@ export default function HyroxApp() {
 
             <button className="btn-ghost" onClick={() => addBlock()} style={{ width: "100%", marginBottom: 16, padding: "13px", fontSize: "0.95rem" }}>+ ADD BLOCK</button>
 
-            {blocks.some((b) => b.time > 0 || b.distance || (b.sets && b.sets.some((s: any) => s.reps))) && (
+            {blocks.some((b) => b.time > 0 || b.distance || (b.sets && b.sets.some((s: any) => s.reps)) || (b.hyroxSets && b.hyroxSets.some((s: any) => s.dist || s.reps || s.timeInput))) && (
               <div className="card" style={{ marginBottom: 16, background: "#0d0d0d" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div>
@@ -1483,6 +1590,15 @@ export default function HyroxApp() {
                                   {b.sets.filter((s: any) => s.reps).map((s: any, si: number) => (
                                     <div key={si}>{s.reps} reps{s.weight ? ` × ${s.weight}${b.weightUnit}` : ""}</div>
                                   ))}
+                                </div>
+                              ) : b.hyroxSets?.filter((s: any) => s.dist || s.reps || s.time).length ? (
+                                <div style={{ fontFamily: "'DM Sans'", fontSize: "0.82rem", color: "#888" }}>
+                                  {b.hyroxSets.filter((s: any) => s.dist || s.reps || s.time).map((s: any, si: number) => {
+                                    const eid = b.exercise_id || b.exerciseId;
+                                    if (eid === WALL_BALLS_ID) return <div key={si}>{s.reps||'—'} reps{s.weight ? ` × ${s.weight}kg` : ''}{s.time > 0 ? ` — ${formatTime(s.time)}` : ''}</div>;
+                                    if (HYROX_WEIGHTED.includes(eid)) return <div key={si}>{s.dist||'—'}{b.unit}{s.weight ? ` @ ${s.weight}kg` : ''}{s.time > 0 ? ` — ${formatTime(s.time)}` : ''}</div>;
+                                    return <div key={si}>{s.dist||'—'}{b.unit}{s.time > 0 ? ` in ${formatTime(s.time)}` : ''}</div>;
+                                  })}
                                 </div>
                               ) : (
                                 <>
