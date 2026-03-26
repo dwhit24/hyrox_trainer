@@ -27,6 +27,105 @@ const EXERCISE_TYPES = [
 
 const UNIT_OPTIONS = ["m", "km", "reps", "min"];
 
+const HYROX_MOVEMENTS = [
+  { id: "run",            name: "Running",           icon: "🏃" },
+  { id: "skierg",         name: "SkiErg",            icon: "⛷️" },
+  { id: "sled_push",      name: "Sled Push",         icon: "🛷" },
+  { id: "sled_pull",      name: "Sled Pull",         icon: "🔗" },
+  { id: "burpee_jump",    name: "Burpee Broad Jump", icon: "💥" },
+  { id: "rowing",         name: "Rowing",            icon: "🚣" },
+  { id: "farmers_carry",  name: "Farmers Carry",     icon: "💪" },
+  { id: "sandbag_lunges", name: "Sandbag Lunges",    icon: "🎒" },
+  { id: "wall_balls",     name: "Wall Balls",        icon: "🏀" },
+];
+
+const STRENGTH_MOVEMENTS = [
+  { id: "back_squat",            name: "Back Squat" },
+  { id: "front_squat",           name: "Front Squat" },
+  { id: "goblet_squat",          name: "Goblet Squat" },
+  { id: "bulgarian_split_squat", name: "Bulgarian Split Squat" },
+  { id: "deadlift",              name: "Deadlift" },
+  { id: "romanian_deadlift",     name: "Romanian Deadlift" },
+  { id: "sumo_deadlift",         name: "Sumo Deadlift" },
+  { id: "trap_bar_deadlift",     name: "Trap Bar Deadlift" },
+  { id: "bench_press",           name: "Bench Press" },
+  { id: "incline_press",         name: "Incline Press" },
+  { id: "overhead_press",        name: "Overhead Press" },
+  { id: "dumbbell_press",        name: "Dumbbell Press" },
+  { id: "pull_up",               name: "Pull-Up / Chin-Up" },
+  { id: "barbell_row",           name: "Barbell Row" },
+  { id: "cable_row",             name: "Cable Row" },
+  { id: "lat_pulldown",          name: "Lat Pulldown" },
+  { id: "walking_lunge",         name: "Walking Lunge" },
+  { id: "reverse_lunge",         name: "Reverse Lunge" },
+  { id: "step_up",               name: "Step-Up" },
+  { id: "single_leg_rdl",        name: "Single Leg RDL" },
+  { id: "hip_thrust",            name: "Hip Thrust" },
+  { id: "good_morning",          name: "Good Morning" },
+  { id: "farmers_carry_str",     name: "Farmers Carry (Heavy)" },
+  { id: "suitcase_carry",        name: "Suitcase Carry" },
+];
+
+const CARDIO_MOVEMENTS = [
+  { id: "run_cardio",      name: "Running",        icon: "🏃" },
+  { id: "cycling",         name: "Cycling",        icon: "🚴" },
+  { id: "stationary_bike", name: "Stationary Bike",icon: "🚲" },
+  { id: "ski_machine",     name: "Ski Machine",    icon: "⛷️" },
+  { id: "rowing_cardio",   name: "Rowing",         icon: "🚣" },
+  { id: "jump_rope",       name: "Jump Rope",      icon: "🪢" },
+  { id: "stair_climber",   name: "Stair Climber",  icon: "🪜" },
+  { id: "elliptical",      name: "Elliptical",     icon: "🔄" },
+];
+
+const ACCESSORY_MOVEMENTS = [
+  { id: "plank",           name: "Plank",             group: "Core" },
+  { id: "dead_bug",        name: "Dead Bug",           group: "Core" },
+  { id: "hollow_body",     name: "Hollow Body Hold",   group: "Core" },
+  { id: "russian_twist",   name: "Russian Twist",      group: "Core" },
+  { id: "ghd_situp",       name: "GHD Sit-Up",         group: "Core" },
+  { id: "pallof_press",    name: "Pallof Press",        group: "Core" },
+  { id: "face_pull",       name: "Face Pull",           group: "Core" },
+  { id: "band_pull_apart", name: "Band Pull-Apart",     group: "Core" },
+  { id: "box_jump",        name: "Box Jump",            group: "Power" },
+  { id: "kettlebell_swing",name: "Kettlebell Swing",    group: "Power" },
+  { id: "battle_ropes",    name: "Battle Ropes",        group: "Power" },
+  { id: "bear_crawl",      name: "Bear Crawl",          group: "Power" },
+  { id: "glute_bridge",    name: "Glute Bridge",        group: "Power" },
+  { id: "calf_raise",      name: "Calf Raise",          group: "Power" },
+  { id: "banded_work",     name: "Banded Work",         group: "Power" },
+  { id: "step_up_acc",     name: "Step-Up",             group: "Power" },
+];
+
+const CATEGORY_META: Record<string, { label: string; color: string }> = {
+  hyrox:     { label: "HYROX",     color: "#ff3c00" },
+  strength:  { label: "STRENGTH",  color: "#3b9eff" },
+  cardio:    { label: "CARDIO",    color: "#44cc88" },
+  accessory: { label: "ACCESSORY", color: "#ff9900" },
+};
+
+function getMovementsForCategory(cat: string) {
+  if (cat === "hyrox")     return HYROX_MOVEMENTS;
+  if (cat === "strength")  return STRENGTH_MOVEMENTS;
+  if (cat === "cardio")    return CARDIO_MOVEMENTS;
+  if (cat === "accessory") return ACCESSORY_MOVEMENTS;
+  return [];
+}
+
+function isStrengthCat(cat: string) {
+  return cat === "strength" || cat === "accessory";
+}
+
+function getMovementName(cat: string, id: string) {
+  const list = getMovementsForCategory(cat) as any[];
+  return list.find((m) => m.id === id)?.name || id;
+}
+
+function getMovementIcon(cat: string, id: string) {
+  const list = getMovementsForCategory(cat) as any[];
+  return (list.find((m) => m.id === id) as any)?.icon || "";
+}
+
+
 const FOCUS_AREAS = [
   { id: "running", label: "Running" },
   { id: "skierg", label: "SkiErg" },
@@ -296,11 +395,15 @@ function totalSeconds(blocks: any[]) {
 
 const emptyBlock = () => ({
   id: Date.now() + Math.random(),
-  exerciseId: "run",
+  category: "hyrox",
+  movementId: "",
+  customMovement: "",
   distance: "",
   unit: "m",
   timeInput: "",
   time: 0,
+  numSets: 3,
+  sets: [{ reps: "", weight: "" }, { reps: "", weight: "" }, { reps: "", weight: "" }],
   notes: "",
 });
 
@@ -369,6 +472,8 @@ export default function HyroxApp() {
   const [blocks, setBlocks] = useState<any[]>([emptyBlock()]);
   const [addingExercise, setAddingExercise] = useState(false);
   const [viewingWorkout, setViewingWorkout] = useState<any>(null);
+  const [weightUnit, setWeightUnit] = useState<"kg" | "lbs">("kg");
+  const [completedSessions, setCompletedSessions] = useState<Set<string>>(new Set());
 
   // Profile state
   const [showProfileSetup, setShowProfileSetup] = useState(false);
@@ -486,7 +591,27 @@ export default function HyroxApp() {
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
-    if (data) setActivePlan(data);
+    if (data) {
+      setActivePlan(data);
+      try {
+        const stored = localStorage.getItem(`completed_${data.id}`);
+        if (stored) setCompletedSessions(new Set(JSON.parse(stored)));
+        else setCompletedSessions(new Set());
+      } catch { setCompletedSessions(new Set()); }
+    }
+  }
+
+  function toggleSessionComplete(weekIdx: number, sessionIdx: number) {
+    const key = `${weekIdx}-${sessionIdx}`;
+    setCompletedSessions((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      if (activePlan?.id) {
+        localStorage.setItem(`completed_${activePlan.id}`, JSON.stringify([...next]));
+      }
+      return next;
+    });
   }
 
   async function savePlan(planData: any) {
@@ -508,7 +633,7 @@ export default function HyroxApp() {
   }
 
   async function saveWorkout() {
-    const validBlocks = blocks.filter((b) => b.distance || b.time);
+    const validBlocks = blocks.filter((b) => b.movementId || b.customMovement);
     if (!validBlocks.length || !user) return;
 
     const { data: workout, error: workoutError } = await supabase
@@ -529,12 +654,12 @@ export default function HyroxApp() {
 
     const blockInserts = validBlocks.map((b, i) => ({
       workout_id: workout.id,
-      exercise_id: b.exerciseId,
-      distance: b.distance,
-      unit: b.unit,
-      time: b.time,
-      time_input: b.timeInput,
-      notes: b.notes,
+      exercise_id: b.movementId || "custom",
+      distance: isStrengthCat(b.category) ? String(b.numSets) : b.distance,
+      unit: isStrengthCat(b.category) ? "sets" : b.unit,
+      time: b.time || 0,
+      time_input: b.timeInput || "",
+      notes: JSON.stringify({ category: b.category, customMovement: b.customMovement, sets: b.sets, weightUnit, notes: b.notes }),
       block_order: i + 1,
     }));
 
@@ -587,9 +712,18 @@ export default function HyroxApp() {
       prev.map((b) => {
         if (b.id !== id) return b;
         const updated = { ...b, [field]: value };
-        if (field === "exerciseId") {
-          const ex = EXERCISE_TYPES.find((e) => e.id === value);
-          updated.unit = ex?.defaultUnit || "m";
+        if (field === "category") {
+          updated.movementId = "";
+          updated.customMovement = "";
+          updated.unit = "m";
+        }
+        if (field === "numSets") {
+          const n = Math.max(1, Number(value));
+          const cur = b.sets || [];
+          updated.sets = n > cur.length
+            ? [...cur, ...Array(n - cur.length).fill({ reps: "", weight: "" })]
+            : cur.slice(0, n);
+          updated.numSets = n;
         }
         if (field === "timeInput") updated.time = parseTimeInput(value);
         return updated;
@@ -597,12 +731,18 @@ export default function HyroxApp() {
     );
   }
 
-  function addBlock(exerciseId: string) {
-    const ex = EXERCISE_TYPES.find((e) => e.id === exerciseId);
-    setBlocks((prev) => [
-      ...prev,
-      { ...emptyBlock(), exerciseId, unit: ex?.defaultUnit || "m", id: Date.now() + Math.random() },
-    ]);
+  function updateSet(blockId: number, setIdx: number, field: "reps" | "weight", value: string) {
+    setBlocks((prev) =>
+      prev.map((b) => {
+        if (b.id !== blockId) return b;
+        const sets = b.sets.map((s: any, i: number) => i === setIdx ? { ...s, [field]: value } : s);
+        return { ...b, sets };
+      })
+    );
+  }
+
+  function addBlock() {
+    setBlocks((prev) => [...prev, emptyBlock()]);
     setAddingExercise(false);
   }
 
@@ -666,6 +806,14 @@ export default function HyroxApp() {
   }
 
   const getEx = (id: string) => EXERCISE_TYPES.find((e) => e.id === id) || EXERCISE_TYPES[0];
+
+  function parseBlock(b: any) {
+    try {
+      const j = JSON.parse(b.notes);
+      if (j && j.category) return { ...b, category: j.category, customMovement: j.customMovement || "", sets: j.sets || null, weightUnit: j.weightUnit || "kg", parsedNotes: j.notes || "" };
+    } catch {}
+    return { ...b, category: "hyrox", customMovement: "", sets: null, weightUnit: "kg", parsedNotes: b.notes || "" };
+  }
 
   // Compute PRs from workout log
   const prs: Record<string, any> = {};
@@ -1052,9 +1200,7 @@ export default function HyroxApp() {
         {tab === "log" && (
           <div className="fade-up">
             <div style={{ marginBottom: 22 }}>
-              <div style={{ fontSize: "0.72rem", color: "#555", letterSpacing: 3, fontFamily: "'DM Sans'", marginBottom: 3 }}>
-                BUILD YOUR SESSION
-              </div>
+              <div style={{ fontSize: "0.72rem", color: "#555", letterSpacing: 3, fontFamily: "'DM Sans'", marginBottom: 3 }}>BUILD YOUR SESSION</div>
               <div style={{ fontSize: "2.4rem", letterSpacing: 3 }}>LOG WORKOUT</div>
             </div>
 
@@ -1068,101 +1214,133 @@ export default function HyroxApp() {
             <div className="card" style={{ marginBottom: 16 }}>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
                 <div>
-                  <label style={{ fontSize: "0.68rem", color: "#555", letterSpacing: 2, fontFamily: "'DM Sans'", display: "block", marginBottom: 5 }}>
-                    DATE
-                  </label>
+                  <label style={{ fontSize: "0.68rem", color: "#555", letterSpacing: 2, fontFamily: "'DM Sans'", display: "block", marginBottom: 5 }}>DATE</label>
                   <input className="input-field" type="date" value={logDate} onChange={(e) => setLogDate(e.target.value)} />
                 </div>
                 <div>
-                  <label style={{ fontSize: "0.68rem", color: "#555", letterSpacing: 2, fontFamily: "'DM Sans'", display: "block", marginBottom: 5 }}>
-                    WORKOUT NAME (optional)
-                  </label>
-                  <input
-                    className="input-field"
-                    placeholder="e.g. Saturday Hyrox Sim"
-                    value={workoutName}
-                    onChange={(e) => setWorkoutName(e.target.value)}
-                  />
+                  <label style={{ fontSize: "0.68rem", color: "#555", letterSpacing: 2, fontFamily: "'DM Sans'", display: "block", marginBottom: 5 }}>WORKOUT NAME (optional)</label>
+                  <input className="input-field" placeholder="e.g. Saturday Hyrox Sim" value={workoutName} onChange={(e) => setWorkoutName(e.target.value)} />
                 </div>
               </div>
             </div>
 
             <div style={{ marginBottom: 12 }}>
-              <div style={{ fontSize: "0.72rem", color: "#555", letterSpacing: 3, fontFamily: "'DM Sans'", marginBottom: 12 }}>
-                WORKOUT BLOCKS — IN ORDER
-              </div>
+              <div style={{ fontSize: "0.72rem", color: "#555", letterSpacing: 3, fontFamily: "'DM Sans'", marginBottom: 12 }}>WORKOUT BLOCKS — IN ORDER</div>
               {blocks.map((block, idx) => {
-                const ex = getEx(block.exerciseId);
-                const isRun = block.exerciseId === "run";
+                const catColor = CATEGORY_META[block.category]?.color || "#ff3c00";
+                const movements = getMovementsForCategory(block.category);
+                const isStrength = isStrengthCat(block.category);
                 return (
                   <div key={block.id} className="block-card slide-in">
-                    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+                    {/* Header row */}
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
                       <div className="block-number">{idx + 1}</div>
-                      <div style={{ width: 6, height: 6, background: isRun ? "#3b9eff" : "#ff3c00", borderRadius: "50%", flexShrink: 0 }} />
-                      <select className="select-field" style={{ flex: 1 }} value={block.exerciseId} onChange={(e) => updateBlock(block.id, "exerciseId", e.target.value)}>
-                        {EXERCISE_TYPES.map((e) => (
-                          <option key={e.id} value={e.id}>{e.icon} {e.name}</option>
-                        ))}
-                      </select>
+                      <div style={{ width: 6, height: 6, background: catColor, borderRadius: "50%", flexShrink: 0 }} />
+                      <div style={{ flex: 1, fontSize: "0.82rem", color: "#555", fontFamily: "'DM Sans'", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {block.movementId ? (block.movementId === "custom" ? block.customMovement || "Custom" : getMovementName(block.category, block.movementId)) : "Select movement below"}
+                      </div>
                       <button className="icon-btn" onClick={() => moveBlock(block.id, "up")}>↑</button>
                       <button className="icon-btn" onClick={() => moveBlock(block.id, "down")}>↓</button>
                       <button className="icon-btn danger" onClick={() => removeBlock(block.id)}>✕</button>
                     </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 80px 1fr", gap: 10 }}>
-                      <div>
-                        <label style={{ fontSize: "0.65rem", color: "#555", letterSpacing: 1, fontFamily: "'DM Sans'", display: "block", marginBottom: 4 }}>
-                          DISTANCE / REPS
-                        </label>
-                        <input
-                          className="input-field"
-                          placeholder={block.unit === "reps" ? "e.g. 50" : "e.g. 500"}
-                          value={block.distance}
-                          onChange={(e) => updateBlock(block.id, "distance", e.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <label style={{ fontSize: "0.65rem", color: "#555", letterSpacing: 1, fontFamily: "'DM Sans'", display: "block", marginBottom: 4 }}>
-                          UNIT
-                        </label>
-                        <select className="select-field" value={block.unit} onChange={(e) => updateBlock(block.id, "unit", e.target.value)}>
-                          {UNIT_OPTIONS.map((u) => <option key={u} value={u}>{u}</option>)}
-                        </select>
-                      </div>
-                      <div>
-                        <label style={{ fontSize: "0.65rem", color: "#555", letterSpacing: 1, fontFamily: "'DM Sans'", display: "block", marginBottom: 4 }}>
-                          TIME (mm:ss)
-                        </label>
-                        <input
-                          className="input-field"
-                          type="tel"
-                          placeholder="e.g. 430"
-                          value={block.timeInput}
-                          onChange={(e) => updateBlock(block.id, "timeInput", e.target.value)}
-                          onBlur={(e) => {
-                            const raw = e.target.value.replace(/[^0-9]/g, "");
-                            if (raw.length >= 3) {
-                              const formatted = raw.slice(0, -2) + ":" + raw.slice(-2);
-                              updateBlock(block.id, "timeInput", formatted);
-                            }
-                          }}
-                        />
-                      </div>
+
+                    {/* Category selector */}
+                    <div style={{ display: "flex", gap: 5, marginBottom: 12 }}>
+                      {Object.entries(CATEGORY_META).map(([cat, meta]) => (
+                        <button key={cat} onClick={() => updateBlock(block.id, "category", cat)} style={{ flex: 1, padding: "7px 2px", background: block.category === cat ? meta.color + "22" : "#161616", border: `1px solid ${block.category === cat ? meta.color : "#252525"}`, color: block.category === cat ? meta.color : "#555", borderRadius: 5, cursor: "pointer", fontFamily: "'Bebas Neue'", fontSize: "0.68rem", letterSpacing: 1, transition: "all 0.15s" }}>
+                          {meta.label}
+                        </button>
+                      ))}
                     </div>
-                    <div style={{ marginTop: 10 }}>
-                      <input
-                        className="input-field"
-                        placeholder="Notes — e.g. felt strong, 20kg sled, HR 165..."
-                        value={block.notes}
-                        onChange={(e) => updateBlock(block.id, "notes", e.target.value)}
-                        style={{ fontSize: "0.82rem", color: "#888" }}
-                      />
+
+                    {/* Movement picker */}
+                    <div style={{ marginBottom: 12 }}>
+                      <div style={{ fontSize: "0.65rem", color: "#555", letterSpacing: 2, fontFamily: "'DM Sans'", marginBottom: 8 }}>MOVEMENT</div>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, maxHeight: 150, overflowY: "auto", paddingBottom: 2 }}>
+                        {movements.map((m: any) => {
+                          const sel = block.movementId === m.id;
+                          return (
+                            <button key={m.id} onClick={() => updateBlock(block.id, "movementId", m.id)} style={{ background: sel ? catColor + "22" : "#161616", border: `1px solid ${sel ? catColor : "#222"}`, color: sel ? catColor : "#aaa", borderRadius: 20, padding: "6px 12px", cursor: "pointer", fontFamily: "'DM Sans'", fontSize: "0.8rem", transition: "all 0.15s", whiteSpace: "nowrap" }}>
+                              {m.icon ? `${m.icon} ` : ""}{m.name}
+                            </button>
+                          );
+                        })}
+                        <button onClick={() => updateBlock(block.id, "movementId", "custom")} style={{ background: block.movementId === "custom" ? catColor + "22" : "#161616", border: `1px solid ${block.movementId === "custom" ? catColor : "#222"}`, color: block.movementId === "custom" ? catColor : "#555", borderRadius: 20, padding: "6px 12px", cursor: "pointer", fontFamily: "'DM Sans'", fontSize: "0.8rem", transition: "all 0.15s", whiteSpace: "nowrap" }}>
+                          ✏️ Custom...
+                        </button>
+                      </div>
+                      {block.movementId === "custom" && (
+                        <input className="input-field" placeholder="Type exercise name..." value={block.customMovement} onChange={(e) => updateBlock(block.id, "customMovement", e.target.value)} style={{ marginTop: 8 }} />
+                      )}
                     </div>
-                    {(block.distance || block.time > 0) && (
+
+                    {/* Strength / Accessory: sets */}
+                    {isStrength ? (
+                      <div>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <span style={{ fontSize: "0.65rem", color: "#555", letterSpacing: 2, fontFamily: "'DM Sans'" }}>SETS</span>
+                            <div style={{ display: "flex", gap: 4 }}>
+                              {[1,2,3,4,5,6].map(n => (
+                                <button key={n} onClick={() => updateBlock(block.id, "numSets", n)} style={{ width: 30, height: 30, background: block.numSets === n ? catColor : "#161616", border: `1px solid ${block.numSets === n ? catColor : "#252525"}`, color: block.numSets === n ? "#fff" : "#555", borderRadius: 5, cursor: "pointer", fontFamily: "'DM Sans'", fontSize: "0.85rem", transition: "all 0.15s" }}>
+                                  {n}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                          <div style={{ display: "flex", gap: 4 }}>
+                            {(["kg","lbs"] as const).map(u => (
+                              <button key={u} onClick={() => setWeightUnit(u)} style={{ padding: "4px 10px", background: weightUnit === u ? "#1e1e1e" : "transparent", border: `1px solid ${weightUnit === u ? "#333" : "#222"}`, color: weightUnit === u ? "#ddd" : "#444", borderRadius: 4, cursor: "pointer", fontFamily: "'DM Sans'", fontSize: "0.75rem", transition: "all 0.15s" }}>
+                                {u}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        <div style={{ display: "flex", gap: 6, marginBottom: 6 }}>
+                          <div style={{ width: 24, flexShrink: 0 }} />
+                          <div style={{ flex: 1, fontSize: "0.6rem", color: "#444", letterSpacing: 2, fontFamily: "'DM Sans'", textAlign: "center" }}>REPS</div>
+                          <div style={{ flex: 1, fontSize: "0.6rem", color: "#444", letterSpacing: 2, fontFamily: "'DM Sans'", textAlign: "center" }}>WEIGHT ({weightUnit})</div>
+                        </div>
+                        {(block.sets || []).map((s: any, si: number) => (
+                          <div key={si} style={{ display: "flex", gap: 6, marginBottom: 6, alignItems: "center" }}>
+                            <div style={{ width: 24, fontSize: "0.7rem", color: "#444", fontFamily: "'DM Sans'", textAlign: "center", flexShrink: 0 }}>{si + 1}</div>
+                            <input className="input-field" type="tel" placeholder="—" value={s.reps} onChange={(e) => updateSet(block.id, si, "reps", e.target.value)} style={{ flex: 1, textAlign: "center" }} />
+                            <input className="input-field" type="tel" placeholder="—" value={s.weight} onChange={(e) => updateSet(block.id, si, "weight", e.target.value)} style={{ flex: 1, textAlign: "center" }} />
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      /* Hyrox / Cardio: distance + time */
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 72px 1fr", gap: 10, marginBottom: 10 }}>
+                        <div>
+                          <label style={{ fontSize: "0.65rem", color: "#555", letterSpacing: 1, fontFamily: "'DM Sans'", display: "block", marginBottom: 4 }}>DISTANCE / REPS</label>
+                          <input className="input-field" placeholder={block.unit === "reps" ? "e.g. 50" : "e.g. 500"} value={block.distance} onChange={(e) => updateBlock(block.id, "distance", e.target.value)} />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: "0.65rem", color: "#555", letterSpacing: 1, fontFamily: "'DM Sans'", display: "block", marginBottom: 4 }}>UNIT</label>
+                          <select className="select-field" value={block.unit} onChange={(e) => updateBlock(block.id, "unit", e.target.value)}>
+                            {UNIT_OPTIONS.map((u) => <option key={u} value={u}>{u}</option>)}
+                          </select>
+                        </div>
+                        <div>
+                          <label style={{ fontSize: "0.65rem", color: "#555", letterSpacing: 1, fontFamily: "'DM Sans'", display: "block", marginBottom: 4 }}>TIME (mm:ss)</label>
+                          <input className="input-field" type="tel" placeholder="e.g. 430" value={block.timeInput} onChange={(e) => updateBlock(block.id, "timeInput", e.target.value)} onBlur={(e) => { const raw = e.target.value.replace(/[^0-9]/g,""); if(raw.length>=3){updateBlock(block.id,"timeInput",raw.slice(0,-2)+":"+raw.slice(-2));} }} />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Notes */}
+                    <div style={{ marginTop: isStrength ? 10 : 0 }}>
+                      <input className="input-field" placeholder="Notes — e.g. felt strong, 20kg sled, HR 165..." value={block.notes} onChange={(e) => updateBlock(block.id, "notes", e.target.value)} style={{ fontSize: "0.82rem", color: "#888" }} />
+                    </div>
+
+                    {/* Live preview for hyrox/cardio */}
+                    {!isStrength && (block.distance || block.time > 0) && (
                       <div style={{ marginTop: 10, padding: "7px 11px", background: "#141414", borderRadius: 5, fontFamily: "'DM Sans'", fontSize: "0.78rem", color: "#777", display: "flex", gap: 18, flexWrap: "wrap" }}>
-                        {block.distance && <span>{ex.icon} <strong style={{ color: "#ccc" }}>{block.distance}{block.unit}</strong></span>}
+                        {block.distance && <span><strong style={{ color: "#ccc" }}>{block.distance}{block.unit}</strong></span>}
                         {block.time > 0 && <span>⏱ <strong style={{ color: "#ff7b00" }}>{formatTime(block.time)}</strong></span>}
                         {block.distance && block.time > 0 && block.unit === "m" && parseFloat(block.distance) > 0 && (
-                          <span>📈 <strong style={{ color: "#aaa" }}>{Math.round((block.time / parseFloat(block.distance)) * 1000)}s / km</strong></span>
+                          <span>📈 <strong style={{ color: "#aaa" }}>{Math.round((block.time / parseFloat(block.distance)) * 1000)}s/km</strong></span>
                         )}
                       </div>
                     )}
@@ -1171,27 +1349,9 @@ export default function HyroxApp() {
               })}
             </div>
 
-            {!addingExercise ? (
-              <button className="btn-ghost" onClick={() => setAddingExercise(true)} style={{ width: "100%", marginBottom: 16, padding: "13px", fontSize: "0.95rem" }}>
-                + ADD BLOCK
-              </button>
-            ) : (
-              <div className="card slide-in" style={{ marginBottom: 16 }}>
-                <div style={{ fontSize: "0.72rem", color: "#555", letterSpacing: 3, fontFamily: "'DM Sans'", marginBottom: 12 }}>
-                  SELECT EXERCISE
-                </div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                  {EXERCISE_TYPES.map((ex) => (
-                    <button key={ex.id} className="ex-pill" onClick={() => addBlock(ex.id)}>
-                      {ex.icon} {ex.name}
-                    </button>
-                  ))}
-                  <button className="ex-pill" onClick={() => setAddingExercise(false)} style={{ color: "#444" }}>✕ Cancel</button>
-                </div>
-              </div>
-            )}
+            <button className="btn-ghost" onClick={() => addBlock()} style={{ width: "100%", marginBottom: 16, padding: "13px", fontSize: "0.95rem" }}>+ ADD BLOCK</button>
 
-            {blocks.some((b) => b.time > 0 || b.distance) && (
+            {blocks.some((b) => b.time > 0 || b.distance || (b.sets && b.sets.some((s: any) => s.reps))) && (
               <div className="card" style={{ marginBottom: 16, background: "#0d0d0d" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div>
@@ -1206,9 +1366,7 @@ export default function HyroxApp() {
               </div>
             )}
 
-            <button className="btn-primary" onClick={saveWorkout} style={{ width: "100%", padding: "14px", fontSize: "1.1rem" }}>
-              SAVE WORKOUT
-            </button>
+            <button className="btn-primary" onClick={saveWorkout} style={{ width: "100%", padding: "14px", fontSize: "1.1rem" }}>SAVE WORKOUT</button>
           </div>
         )}
 
@@ -1243,15 +1401,17 @@ export default function HyroxApp() {
                   <div style={{ fontSize: "0.68rem", color: "#444", letterSpacing: 3, fontFamily: "'DM Sans'", marginBottom: 16 }}>
                     WORKOUT SEQUENCE
                   </div>
-                  {viewingWorkout.blocks.map((b: any, i: number) => {
-                    const ex = getEx(b.exerciseId);
-                    const isRun = b.exerciseId === "run";
-                    const dotColor = isRun ? "#3b9eff" : "#ff3c00";
+                  {viewingWorkout.blocks.map((rawB: any, i: number) => {
+                    const b = parseBlock(rawB);
+                    const catColor = CATEGORY_META[b.category]?.color || "#ff3c00";
+                    const moveName = b.exercise_id === "custom" ? (b.customMovement || "Custom") : getMovementName(b.category, b.exercise_id);
+                    const icon = getMovementIcon(b.category, b.exercise_id);
+                    const isStrength = isStrengthCat(b.category);
                     return (
                       <div key={b.id || i} style={{ display: "flex", gap: 0 }}>
                         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: 40, flexShrink: 0 }}>
-                          <div style={{ width: 34, height: 34, borderRadius: "50%", background: isRun ? "#091828" : "#180800", border: `2px solid ${dotColor}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1rem", flexShrink: 0 }}>
-                            {ex.icon}
+                          <div style={{ width: 34, height: 34, borderRadius: "50%", background: catColor + "15", border: `2px solid ${catColor}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1rem", flexShrink: 0 }}>
+                            {icon || CATEGORY_META[b.category]?.label?.[0] || "•"}
                           </div>
                           {i < viewingWorkout.blocks.length - 1 && (
                             <div style={{ width: 2, flex: 1, minHeight: 20, background: "#1a1a1a" }} />
@@ -1260,27 +1420,29 @@ export default function HyroxApp() {
                         <div style={{ flex: 1, paddingLeft: 14, paddingBottom: i < viewingWorkout.blocks.length - 1 ? 20 : 0 }}>
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                             <div>
-                              <div style={{ fontSize: "0.62rem", color: "#444", letterSpacing: 2, fontFamily: "'DM Sans'" }}>
-                                BLOCK {b.order}
-                              </div>
-                              <div style={{ fontFamily: "'DM Sans'", fontSize: "1rem", fontWeight: 600, marginTop: 1, color: "#ddd" }}>
-                                {ex.name}
-                              </div>
+                              <div style={{ fontSize: "0.6rem", color: catColor, letterSpacing: 2, fontFamily: "'DM Sans'" }}>{(CATEGORY_META[b.category]?.label || "HYROX")}</div>
+                              <div style={{ fontFamily: "'DM Sans'", fontSize: "1rem", fontWeight: 600, marginTop: 1, color: "#ddd" }}>{moveName}</div>
                             </div>
                             <div style={{ textAlign: "right" }}>
-                              {b.distance && <div style={{ fontFamily: "'DM Sans'", fontSize: "1rem", fontWeight: 700, color: dotColor }}>{b.distance}{b.unit}</div>}
-                              {b.time > 0 && <div style={{ fontFamily: "'DM Sans'", fontSize: "0.82rem", color: "#888", marginTop: 1 }}>⏱ {formatTime(b.time)}</div>}
-                              {b.distance && b.time > 0 && b.unit === "m" && parseFloat(b.distance) > 0 && (
-                                <div style={{ fontFamily: "'DM Sans'", fontSize: "0.75rem", color: "#555", marginTop: 1 }}>
-                                  {Math.round((b.time / parseFloat(b.distance)) * 1000)}s/km
+                              {isStrength && b.sets ? (
+                                <div style={{ fontFamily: "'DM Sans'", fontSize: "0.82rem", color: "#888" }}>
+                                  {b.sets.filter((s: any) => s.reps).map((s: any, si: number) => (
+                                    <div key={si}>{s.reps} reps{s.weight ? ` × ${s.weight}${b.weightUnit}` : ""}</div>
+                                  ))}
                                 </div>
+                              ) : (
+                                <>
+                                  {b.distance && b.unit !== "sets" && <div style={{ fontFamily: "'DM Sans'", fontSize: "1rem", fontWeight: 700, color: catColor }}>{b.distance}{b.unit}</div>}
+                                  {b.time > 0 && <div style={{ fontFamily: "'DM Sans'", fontSize: "0.82rem", color: "#888", marginTop: 1 }}>⏱ {formatTime(b.time)}</div>}
+                                  {b.distance && b.time > 0 && b.unit === "m" && parseFloat(b.distance) > 0 && (
+                                    <div style={{ fontFamily: "'DM Sans'", fontSize: "0.75rem", color: "#555", marginTop: 1 }}>{Math.round((b.time / parseFloat(b.distance)) * 1000)}s/km</div>
+                                  )}
+                                </>
                               )}
                             </div>
                           </div>
-                          {b.notes && (
-                            <div style={{ fontFamily: "'DM Sans'", fontSize: "0.78rem", color: "#555", fontStyle: "italic", marginTop: 4 }}>
-                              {b.notes}
-                            </div>
+                          {b.parsedNotes && (
+                            <div style={{ fontFamily: "'DM Sans'", fontSize: "0.78rem", color: "#555", fontStyle: "italic", marginTop: 4 }}>{b.parsedNotes}</div>
                           )}
                         </div>
                       </div>
@@ -1571,18 +1733,24 @@ export default function HyroxApp() {
                             const tc: Record<string, string> = { strength: "#ff9900", station: "#ff3c00", run: "#3b9eff", race_sim: "#ff3c00", rest: "#444" };
                             const ti: Record<string, string> = { strength: "💪", station: "⚡", run: "🏃", race_sim: "🏁", rest: "😴" };
                             const sc = tc[session.type] || "#888";
+                            const isDone = completedSessions.has(sk);
                             return (
-                              <div key={si} style={{ background: "#111", border: "1px solid #1a1a1a", borderRadius: 6, overflow: "hidden" }}>
-                                <button onClick={() => setExpandedDay(isDayOpen ? null : sk)} style={{ width: "100%", background: "none", border: "none", padding: "11px 13px", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", color: "#fff" }}>
-                                  <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-                                    <div style={{ fontSize: "1.05rem" }}>{ti[session.type] || "•"}</div>
-                                    <div style={{ textAlign: "left" }}>
-                                      <div style={{ fontFamily: "'DM Sans'", fontSize: "0.86rem", color: "#e0e0e0" }}>Day {session.dayNumber} — {session.name}</div>
-                                      <div style={{ fontSize: "0.7rem", color: "#555", fontFamily: "'DM Sans'", marginTop: 1 }}>{session.duration} min · <span style={{ color: sc }}>{session.type.replace("_", " ").toUpperCase()}</span></div>
+                              <div key={si} style={{ background: isDone ? "#0a1a0a" : "#111", border: `1px solid ${isDone ? "#1a3a1a" : "#1a1a1a"}`, borderRadius: 6, overflow: "hidden", transition: "all 0.2s" }}>
+                                <div style={{ display: "flex", alignItems: "center" }}>
+                                  <button onClick={() => setExpandedDay(isDayOpen ? null : sk)} style={{ flex: 1, background: "none", border: "none", padding: "11px 13px", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", color: "#fff" }}>
+                                    <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+                                      <div style={{ fontSize: "1.05rem", opacity: isDone ? 0.4 : 1 }}>{ti[session.type] || "•"}</div>
+                                      <div style={{ textAlign: "left" }}>
+                                        <div style={{ fontFamily: "'DM Sans'", fontSize: "0.86rem", color: isDone ? "#555" : "#e0e0e0", textDecoration: isDone ? "line-through" : "none" }}>Day {session.dayNumber} — {session.name}</div>
+                                        <div style={{ fontSize: "0.7rem", color: "#555", fontFamily: "'DM Sans'", marginTop: 1 }}>{session.duration} min · <span style={{ color: isDone ? "#444" : sc }}>{session.type.replace("_", " ").toUpperCase()}</span></div>
+                                      </div>
                                     </div>
-                                  </div>
-                                  <div style={{ color: "#444", fontSize: "0.72rem" }}>{isDayOpen ? "▲" : "▼"}</div>
-                                </button>
+                                    <div style={{ color: "#444", fontSize: "0.72rem", marginRight: 4 }}>{isDayOpen ? "▲" : "▼"}</div>
+                                  </button>
+                                  <button onClick={(e) => { e.stopPropagation(); toggleSessionComplete(wi, si); }} style={{ background: isDone ? "#1a4a1a" : "#161616", border: `1px solid ${isDone ? "#2a6a2a" : "#252525"}`, color: isDone ? "#44cc88" : "#444", width: 36, height: 36, borderRadius: 5, cursor: "pointer", fontSize: "0.9rem", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, margin: "0 10px", transition: "all 0.2s" }}>
+                                    ✓
+                                  </button>
+                                </div>
                                 {isDayOpen && (
                                   <div style={{ padding: "4px 13px 13px", borderTop: "1px solid #1a1a1a" }}>
                                     {session.description && <div style={{ fontSize: "0.78rem", color: "#555", fontFamily: "'DM Sans'", marginBottom: 10, lineHeight: 1.55, fontStyle: "italic" }}>{session.description}</div>}
