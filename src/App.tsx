@@ -25,7 +25,12 @@ const EXERCISE_TYPES = [
   { id: "wall_balls", name: "Wall Balls", icon: "🏀", defaultUnit: "reps", color: "#ff3c00" },
 ];
 
-const UNIT_OPTIONS = ["m", "km", "reps", "min"];
+const UNIT_OPTIONS = ["m", "km", "miles"];
+
+// Hyrox movements that require a weight field
+const HYROX_WEIGHTED = ["sled_push", "sled_pull", "farmers_carry", "sandbag_lunges", "wall_balls"];
+// Wall balls uses reps instead of distance
+const WALL_BALLS_ID = "wall_balls";
 
 const HYROX_MOVEMENTS = [
   { id: "run",            name: "Running",           icon: "🏃" },
@@ -398,10 +403,12 @@ const emptyBlock = () => ({
   category: "hyrox",
   movementId: "",
   customMovement: "",
+  movementSearch: "",
   distance: "",
   unit: "m",
   timeInput: "",
   time: 0,
+  hyroxWeight: "",
   numSets: 3,
   sets: [{ reps: "", weight: "" }, { reps: "", weight: "" }, { reps: "", weight: "" }],
   notes: "",
@@ -659,7 +666,7 @@ export default function HyroxApp() {
       unit: isStrengthCat(b.category) ? "sets" : b.unit,
       time: b.time || 0,
       time_input: b.timeInput || "",
-      notes: JSON.stringify({ category: b.category, customMovement: b.customMovement, sets: b.sets, weightUnit, notes: b.notes }),
+      notes: JSON.stringify({ category: b.category, customMovement: b.customMovement, sets: b.sets, weightUnit, hyroxWeight: b.hyroxWeight, notes: b.notes }),
       block_order: i + 1,
     }));
 
@@ -810,9 +817,9 @@ export default function HyroxApp() {
   function parseBlock(b: any) {
     try {
       const j = JSON.parse(b.notes);
-      if (j && j.category) return { ...b, category: j.category, customMovement: j.customMovement || "", sets: j.sets || null, weightUnit: j.weightUnit || "kg", parsedNotes: j.notes || "" };
+      if (j && j.category) return { ...b, category: j.category, customMovement: j.customMovement || "", sets: j.sets || null, weightUnit: j.weightUnit || "kg", hyroxWeight: j.hyroxWeight || "", parsedNotes: j.notes || "" };
     } catch {}
-    return { ...b, category: "hyrox", customMovement: "", sets: null, weightUnit: "kg", parsedNotes: b.notes || "" };
+    return { ...b, category: "hyrox", customMovement: "", sets: null, weightUnit: "kg", hyroxWeight: "", parsedNotes: b.notes || "" };
   }
 
   // Compute PRs from workout log
@@ -1256,8 +1263,15 @@ export default function HyroxApp() {
                     {/* Movement picker */}
                     <div style={{ marginBottom: 12 }}>
                       <div style={{ fontSize: "0.65rem", color: "#555", letterSpacing: 2, fontFamily: "'DM Sans'", marginBottom: 8 }}>MOVEMENT</div>
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, maxHeight: 150, overflowY: "auto", paddingBottom: 2 }}>
-                        {movements.map((m: any) => {
+                      <input
+                        className="input-field"
+                        placeholder="Search movements..."
+                        value={block.movementSearch || ""}
+                        onChange={(e) => updateBlock(block.id, "movementSearch", e.target.value)}
+                        style={{ marginBottom: 8, fontSize: "0.82rem" }}
+                      />
+                      <div key={block.id + "-" + block.category} style={{ display: "flex", flexWrap: "wrap", gap: 6, maxHeight: 150, overflowY: "auto", paddingBottom: 2 }}>
+                        {movements.filter((m: any) => !block.movementSearch || m.name.toLowerCase().includes((block.movementSearch || "").toLowerCase())).map((m: any) => {
                           const sel = block.movementId === m.id;
                           return (
                             <button key={m.id} onClick={() => updateBlock(block.id, "movementId", m.id)} style={{ background: sel ? catColor + "22" : "#161616", border: `1px solid ${sel ? catColor : "#222"}`, color: sel ? catColor : "#aaa", borderRadius: 20, padding: "6px 12px", cursor: "pointer", fontFamily: "'DM Sans'", fontSize: "0.8rem", transition: "all 0.15s", whiteSpace: "nowrap" }}>
@@ -1265,9 +1279,11 @@ export default function HyroxApp() {
                             </button>
                           );
                         })}
-                        <button onClick={() => updateBlock(block.id, "movementId", "custom")} style={{ background: block.movementId === "custom" ? catColor + "22" : "#161616", border: `1px solid ${block.movementId === "custom" ? catColor : "#222"}`, color: block.movementId === "custom" ? catColor : "#555", borderRadius: 20, padding: "6px 12px", cursor: "pointer", fontFamily: "'DM Sans'", fontSize: "0.8rem", transition: "all 0.15s", whiteSpace: "nowrap" }}>
-                          ✏️ Custom...
-                        </button>
+                        {(!(block.movementSearch) || "custom".includes((block.movementSearch || "").toLowerCase())) && (
+                          <button onClick={() => updateBlock(block.id, "movementId", "custom")} style={{ background: block.movementId === "custom" ? catColor + "22" : "#161616", border: `1px solid ${block.movementId === "custom" ? catColor : "#222"}`, color: block.movementId === "custom" ? catColor : "#555", borderRadius: 20, padding: "6px 12px", cursor: "pointer", fontFamily: "'DM Sans'", fontSize: "0.8rem", transition: "all 0.15s", whiteSpace: "nowrap" }}>
+                            ✏️ Custom...
+                          </button>
+                        )}
                       </div>
                       {block.movementId === "custom" && (
                         <input className="input-field" placeholder="Type exercise name..." value={block.customMovement} onChange={(e) => updateBlock(block.id, "customMovement", e.target.value)} style={{ marginTop: 8 }} />
@@ -1278,22 +1294,17 @@ export default function HyroxApp() {
                     {isStrength ? (
                       <div>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                             <span style={{ fontSize: "0.65rem", color: "#555", letterSpacing: 2, fontFamily: "'DM Sans'" }}>SETS</span>
-                            <div style={{ display: "flex", gap: 4 }}>
-                              {[1,2,3,4,5,6].map(n => (
-                                <button key={n} onClick={() => updateBlock(block.id, "numSets", n)} style={{ width: 30, height: 30, background: block.numSets === n ? catColor : "#161616", border: `1px solid ${block.numSets === n ? catColor : "#252525"}`, color: block.numSets === n ? "#fff" : "#555", borderRadius: 5, cursor: "pointer", fontFamily: "'DM Sans'", fontSize: "0.85rem", transition: "all 0.15s" }}>
-                                  {n}
-                                </button>
-                              ))}
+                            <div style={{ display: "flex", alignItems: "center" }}>
+                              <button onClick={() => updateBlock(block.id, "numSets", (block.numSets || 1) - 1)} style={{ width: 30, height: 30, background: "#161616", border: "1px solid #252525", color: "#aaa", borderRadius: "5px 0 0 5px", cursor: "pointer", fontFamily: "'DM Sans'", fontSize: "1.1rem", lineHeight: "1", display: "flex", alignItems: "center", justifyContent: "center" }}>−</button>
+                              <div style={{ width: 38, height: 30, background: catColor + "22", border: `1px solid ${catColor}`, borderLeft: "none", borderRight: "none", color: catColor, fontFamily: "'DM Sans'", fontSize: "0.9rem", display: "flex", alignItems: "center", justifyContent: "center" }}>{block.numSets}</div>
+                              <button onClick={() => updateBlock(block.id, "numSets", (block.numSets || 1) + 1)} style={{ width: 30, height: 30, background: "#161616", border: "1px solid #252525", color: "#aaa", borderRadius: "0 5px 5px 0", cursor: "pointer", fontFamily: "'DM Sans'", fontSize: "1.1rem", lineHeight: "1", display: "flex", alignItems: "center", justifyContent: "center" }}>+</button>
                             </div>
                           </div>
-                          <div style={{ display: "flex", gap: 4 }}>
-                            {(["kg","lbs"] as const).map(u => (
-                              <button key={u} onClick={() => setWeightUnit(u)} style={{ padding: "4px 10px", background: weightUnit === u ? "#1e1e1e" : "transparent", border: `1px solid ${weightUnit === u ? "#333" : "#222"}`, color: weightUnit === u ? "#ddd" : "#444", borderRadius: 4, cursor: "pointer", fontFamily: "'DM Sans'", fontSize: "0.75rem", transition: "all 0.15s" }}>
-                                {u}
-                              </button>
-                            ))}
+                          <div style={{ display: "flex" }}>
+                            <button onClick={() => setWeightUnit("kg")} style={{ padding: "5px 12px", background: weightUnit === "kg" ? catColor + "22" : "#111", border: `1px solid ${weightUnit === "kg" ? catColor : "#252525"}`, color: weightUnit === "kg" ? catColor : "#555", borderRadius: "5px 0 0 5px", cursor: "pointer", fontFamily: "'DM Sans'", fontSize: "0.75rem", transition: "all 0.15s" }}>kg</button>
+                            <button onClick={() => setWeightUnit("lbs")} style={{ padding: "5px 12px", background: weightUnit === "lbs" ? catColor + "22" : "#111", border: `1px solid ${weightUnit === "lbs" ? catColor : "#252525"}`, borderLeft: "none", color: weightUnit === "lbs" ? catColor : "#555", borderRadius: "0 5px 5px 0", cursor: "pointer", fontFamily: "'DM Sans'", fontSize: "0.75rem", transition: "all 0.15s" }}>lbs</button>
                           </div>
                         </div>
                         <div style={{ display: "flex", gap: 6, marginBottom: 6 }}>
@@ -1310,22 +1321,65 @@ export default function HyroxApp() {
                         ))}
                       </div>
                     ) : (
-                      /* Hyrox / Cardio: distance + time */
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 72px 1fr", gap: 10, marginBottom: 10 }}>
-                        <div>
-                          <label style={{ fontSize: "0.65rem", color: "#555", letterSpacing: 1, fontFamily: "'DM Sans'", display: "block", marginBottom: 4 }}>DISTANCE / REPS</label>
-                          <input className="input-field" placeholder={block.unit === "reps" ? "e.g. 50" : "e.g. 500"} value={block.distance} onChange={(e) => updateBlock(block.id, "distance", e.target.value)} />
-                        </div>
-                        <div>
-                          <label style={{ fontSize: "0.65rem", color: "#555", letterSpacing: 1, fontFamily: "'DM Sans'", display: "block", marginBottom: 4 }}>UNIT</label>
-                          <select className="select-field" value={block.unit} onChange={(e) => updateBlock(block.id, "unit", e.target.value)}>
-                            {UNIT_OPTIONS.map((u) => <option key={u} value={u}>{u}</option>)}
-                          </select>
-                        </div>
-                        <div>
-                          <label style={{ fontSize: "0.65rem", color: "#555", letterSpacing: 1, fontFamily: "'DM Sans'", display: "block", marginBottom: 4 }}>TIME (mm:ss)</label>
-                          <input className="input-field" type="tel" placeholder="e.g. 430" value={block.timeInput} onChange={(e) => updateBlock(block.id, "timeInput", e.target.value)} onBlur={(e) => { const raw = e.target.value.replace(/[^0-9]/g,""); if(raw.length>=3){updateBlock(block.id,"timeInput",raw.slice(0,-2)+":"+raw.slice(-2));} }} />
-                        </div>
+                      /* Hyrox / Cardio: conditional fields */
+                      <div>
+                        {block.category === "hyrox" && block.movementId === WALL_BALLS_ID ? (
+                          /* Wall Balls: Reps + Weight + Time */
+                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 10 }}>
+                            <div>
+                              <label style={{ fontSize: "0.65rem", color: "#555", letterSpacing: 1, fontFamily: "'DM Sans'", display: "block", marginBottom: 4 }}>REPS</label>
+                              <input className="input-field" type="tel" placeholder="e.g. 100" value={block.distance} onChange={(e) => updateBlock(block.id, "distance", e.target.value)} />
+                            </div>
+                            <div>
+                              <label style={{ fontSize: "0.65rem", color: "#555", letterSpacing: 1, fontFamily: "'DM Sans'", display: "block", marginBottom: 4 }}>WEIGHT (kg)</label>
+                              <input className="input-field" type="tel" placeholder="e.g. 6" value={block.hyroxWeight} onChange={(e) => updateBlock(block.id, "hyroxWeight", e.target.value)} />
+                            </div>
+                            <div>
+                              <label style={{ fontSize: "0.65rem", color: "#555", letterSpacing: 1, fontFamily: "'DM Sans'", display: "block", marginBottom: 4 }}>TIME (mm:ss)</label>
+                              <input className="input-field" type="tel" placeholder="e.g. 430" value={block.timeInput} onChange={(e) => updateBlock(block.id, "timeInput", e.target.value)} onBlur={(e) => { const raw = e.target.value.replace(/[^0-9]/g,""); if(raw.length>=3){updateBlock(block.id,"timeInput",raw.slice(0,-2)+":"+raw.slice(-2));} }} />
+                            </div>
+                          </div>
+                        ) : block.category === "hyrox" && HYROX_WEIGHTED.includes(block.movementId) ? (
+                          /* Weighted Hyrox (sled push/pull, farmers carry, sandbag lunges): Dist + Unit + Weight + Time */
+                          <div style={{ display: "grid", gridTemplateColumns: "1fr 60px 1fr 1fr", gap: 8, marginBottom: 10 }}>
+                            <div>
+                              <label style={{ fontSize: "0.65rem", color: "#555", letterSpacing: 1, fontFamily: "'DM Sans'", display: "block", marginBottom: 4 }}>DIST</label>
+                              <input className="input-field" placeholder="e.g. 50" value={block.distance} onChange={(e) => updateBlock(block.id, "distance", e.target.value)} />
+                            </div>
+                            <div>
+                              <label style={{ fontSize: "0.65rem", color: "#555", letterSpacing: 1, fontFamily: "'DM Sans'", display: "block", marginBottom: 4 }}>UNIT</label>
+                              <select className="select-field" value={block.unit} onChange={(e) => updateBlock(block.id, "unit", e.target.value)}>
+                                {UNIT_OPTIONS.map((u) => <option key={u} value={u}>{u}</option>)}
+                              </select>
+                            </div>
+                            <div>
+                              <label style={{ fontSize: "0.65rem", color: "#555", letterSpacing: 1, fontFamily: "'DM Sans'", display: "block", marginBottom: 4 }}>WEIGHT (kg)</label>
+                              <input className="input-field" type="tel" placeholder="e.g. 75" value={block.hyroxWeight} onChange={(e) => updateBlock(block.id, "hyroxWeight", e.target.value)} />
+                            </div>
+                            <div>
+                              <label style={{ fontSize: "0.65rem", color: "#555", letterSpacing: 1, fontFamily: "'DM Sans'", display: "block", marginBottom: 4 }}>TIME (mm:ss)</label>
+                              <input className="input-field" type="tel" placeholder="e.g. 430" value={block.timeInput} onChange={(e) => updateBlock(block.id, "timeInput", e.target.value)} onBlur={(e) => { const raw = e.target.value.replace(/[^0-9]/g,""); if(raw.length>=3){updateBlock(block.id,"timeInput",raw.slice(0,-2)+":"+raw.slice(-2));} }} />
+                            </div>
+                          </div>
+                        ) : (
+                          /* Standard Hyrox / Cardio: Distance + Unit + Time */
+                          <div style={{ display: "grid", gridTemplateColumns: "1fr 72px 1fr", gap: 10, marginBottom: 10 }}>
+                            <div>
+                              <label style={{ fontSize: "0.65rem", color: "#555", letterSpacing: 1, fontFamily: "'DM Sans'", display: "block", marginBottom: 4 }}>DISTANCE</label>
+                              <input className="input-field" placeholder="e.g. 500" value={block.distance} onChange={(e) => updateBlock(block.id, "distance", e.target.value)} />
+                            </div>
+                            <div>
+                              <label style={{ fontSize: "0.65rem", color: "#555", letterSpacing: 1, fontFamily: "'DM Sans'", display: "block", marginBottom: 4 }}>UNIT</label>
+                              <select className="select-field" value={block.unit} onChange={(e) => updateBlock(block.id, "unit", e.target.value)}>
+                                {UNIT_OPTIONS.map((u) => <option key={u} value={u}>{u}</option>)}
+                              </select>
+                            </div>
+                            <div>
+                              <label style={{ fontSize: "0.65rem", color: "#555", letterSpacing: 1, fontFamily: "'DM Sans'", display: "block", marginBottom: 4 }}>TIME (mm:ss)</label>
+                              <input className="input-field" type="tel" placeholder="e.g. 430" value={block.timeInput} onChange={(e) => updateBlock(block.id, "timeInput", e.target.value)} onBlur={(e) => { const raw = e.target.value.replace(/[^0-9]/g,""); if(raw.length>=3){updateBlock(block.id,"timeInput",raw.slice(0,-2)+":"+raw.slice(-2));} }} />
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
 
