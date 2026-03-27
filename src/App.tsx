@@ -926,9 +926,10 @@ export default function HyroxApp() {
       >
         <style>{`@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');`}</style>
         <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: "2rem", letterSpacing: 5, marginBottom: 12 }}>
-            HYROX <span style={{ color: "#ff3c00" }}>TRAINER</span>
+          <div style={{ fontSize: "2rem", letterSpacing: 5, marginBottom: 4 }}>
+            Go<span style={{ color: "#ff3c00" }}>Rox</span>
           </div>
+          <div style={{ fontFamily: "'DM Sans'", fontSize: "0.7rem", color: "#444", letterSpacing: 3, marginBottom: 12 }}>HYROX TRAINER</div>
           <div style={{ fontFamily: "'DM Sans'", color: "#444", fontSize: "0.85rem" }}>Loading...</div>
         </div>
       </div>
@@ -963,17 +964,18 @@ export default function HyroxApp() {
         `}</style>
         <div style={{ width: "100%", maxWidth: 400 }}>
           <div style={{ textAlign: "center", marginBottom: 40 }}>
-            <div style={{ fontSize: "2.8rem", letterSpacing: 6 }}>HYROX</div>
+            <div style={{ fontSize: "2.8rem", letterSpacing: 6 }}>Go<span style={{ color: "#ff3c00" }}>Rox</span></div>
             <div
               style={{
-                fontSize: "0.85rem",
-                color: "#ff3c00",
+                fontSize: "0.72rem",
+                color: "#555",
                 fontFamily: "'DM Sans'",
-                fontWeight: 700,
+                fontWeight: 600,
                 letterSpacing: 3,
+                marginTop: 4,
               }}
             >
-              TRAINER
+              HYROX TRAINER
             </div>
           </div>
 
@@ -1109,8 +1111,8 @@ export default function HyroxApp() {
       <div style={{ fontFamily: "'Bebas Neue', sans-serif", background: "#0a0a0a", height: "100vh", color: "#f0f0f0", display: "flex", alignItems: "center", justifyContent: "center", padding: "0 32px" }}>
         <style>{GLOBAL_STYLES}</style>
         <div style={{ width: "100%", maxWidth: 400, textAlign: "center" }}>
-          <div style={{ fontSize: "2.6rem", letterSpacing: 5, marginBottom: 8 }}>HYROX</div>
-          <div style={{ fontSize: "0.75rem", color: "#ff3c00", letterSpacing: 3, fontFamily: "'DM Sans'", fontWeight: 700, marginBottom: 48 }}>TRAINER</div>
+          <div style={{ fontSize: "2.6rem", letterSpacing: 5, marginBottom: 4 }}>Go<span style={{ color: "#ff3c00" }}>Rox</span></div>
+          <div style={{ fontSize: "0.72rem", color: "#555", letterSpacing: 3, fontFamily: "'DM Sans'", fontWeight: 600, marginBottom: 48 }}>HYROX TRAINER</div>
           <div style={{ fontSize: "0.72rem", color: "#555", letterSpacing: 3, fontFamily: "'DM Sans'", marginBottom: 8 }}>ONE LAST THING</div>
           <div style={{ fontSize: "2rem", letterSpacing: 3, marginBottom: 12 }}>WHO ARE YOU?</div>
           <div style={{ fontSize: "0.85rem", color: "#555", fontFamily: "'DM Sans'", marginBottom: 36, lineHeight: 1.6 }}>
@@ -1157,9 +1159,9 @@ export default function HyroxApp() {
         <div style={{ maxWidth: 860, margin: "0 auto" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 14, paddingBottom: 12 }}>
             <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-              <span style={{ fontSize: "1.9rem", letterSpacing: 5, color: "#fff" }}>HYROX</span>
-              <span style={{ fontSize: "0.8rem", color: "#ff3c00", fontFamily: "'DM Sans'", fontWeight: 700, letterSpacing: 2 }}>
-                TRAINER
+              <span style={{ fontSize: "1.9rem", letterSpacing: 5, color: "#fff" }}>Go<span style={{ color: "#ff3c00" }}>Rox</span></span>
+              <span style={{ fontSize: "0.65rem", color: "#444", fontFamily: "'DM Sans'", fontWeight: 600, letterSpacing: 2 }}>
+                HYROX TRAINER
               </span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
