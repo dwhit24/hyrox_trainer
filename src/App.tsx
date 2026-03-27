@@ -517,7 +517,7 @@ export default function HyroxApp() {
   const [authLoading, setAuthLoading] = useState(true);
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
-  const [authMode, setAuthMode] = useState<"login" | "signup">("login");
+  const [authMode, setAuthMode] = useState<"login" | "signup" | "reset">("login");
   const [authError, setAuthError] = useState("");
   const [authSubmitting, setAuthSubmitting] = useState(false);
   const [dataLoading, setDataLoading] = useState(false);
@@ -697,6 +697,21 @@ export default function HyroxApp() {
   // ---------------------------------------------------------------------------
   // Auth functions
   // ---------------------------------------------------------------------------
+  async function handleResetPassword(e: React.FormEvent) {
+    e.preventDefault();
+    setAuthError("");
+    setAuthSubmitting(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(authEmail, {
+      redirectTo: window.location.origin,
+    });
+    if (error) {
+      setAuthError(error.message);
+    } else {
+      setAuthError("✓ Check your email for a reset link.");
+    }
+    setAuthSubmitting(false);
+  }
+
   async function handleAuth(e: React.FormEvent) {
     e.preventDefault();
     setAuthError("");
@@ -964,13 +979,13 @@ export default function HyroxApp() {
 
           <div style={{ background: "#111", border: "1px solid #1c1c1c", borderRadius: 10, padding: 32 }}>
             <div style={{ fontSize: "1.5rem", letterSpacing: 3, marginBottom: 6 }}>
-              {authMode === "login" ? "SIGN IN" : "CREATE ACCOUNT"}
+              {authMode === "login" ? "SIGN IN" : authMode === "reset" ? "RESET PASSWORD" : "CREATE ACCOUNT"}
             </div>
             <div style={{ fontFamily: "'DM Sans'", fontSize: "0.82rem", color: "#555", marginBottom: 24 }}>
-              {authMode === "login" ? "Welcome back, athlete." : "Join and start tracking your Hyrox journey."}
+              {authMode === "login" ? "Welcome back, athlete." : authMode === "reset" ? "Enter your email and we'll send a reset link." : "Join and start tracking your Hyrox journey."}
             </div>
 
-            <form onSubmit={handleAuth}>
+            <form onSubmit={authMode === "reset" ? handleResetPassword : handleAuth}>
               <div style={{ marginBottom: 14 }}>
                 <label
                   style={{
@@ -993,29 +1008,31 @@ export default function HyroxApp() {
                   required
                 />
               </div>
-              <div style={{ marginBottom: 20 }}>
-                <label
-                  style={{
-                    fontSize: "0.65rem",
-                    color: "#555",
-                    letterSpacing: 2,
-                    fontFamily: "'DM Sans'",
-                    display: "block",
-                    marginBottom: 5,
-                  }}
-                >
-                  PASSWORD
-                </label>
-                <input
-                  className="input-field"
-                  type="password"
-                  placeholder="••••••••"
-                  value={authPassword}
-                  onChange={(e) => setAuthPassword(e.target.value)}
-                  required
-                  minLength={6}
-                />
-              </div>
+              {authMode !== "reset" && (
+                <div style={{ marginBottom: 20 }}>
+                  <label
+                    style={{
+                      fontSize: "0.65rem",
+                      color: "#555",
+                      letterSpacing: 2,
+                      fontFamily: "'DM Sans'",
+                      display: "block",
+                      marginBottom: 5,
+                    }}
+                  >
+                    PASSWORD
+                  </label>
+                  <input
+                    className="input-field"
+                    type="password"
+                    placeholder="••••••••"
+                    value={authPassword}
+                    onChange={(e) => setAuthPassword(e.target.value)}
+                    required
+                    minLength={6}
+                  />
+                </div>
+              )}
 
               {authError && (
                 <div
@@ -1035,20 +1052,32 @@ export default function HyroxApp() {
               )}
 
               <button className="btn-primary" type="submit" disabled={authSubmitting}>
-                {authSubmitting ? "..." : authMode === "login" ? "SIGN IN" : "CREATE ACCOUNT"}
+                {authSubmitting ? "..." : authMode === "login" ? "SIGN IN" : authMode === "reset" ? "SEND RESET EMAIL" : "CREATE ACCOUNT"}
               </button>
             </form>
+
+            {/* Forgot password link — only on login screen */}
+            {authMode === "login" && (
+              <div style={{ textAlign: "center", marginTop: 14 }}>
+                <button
+                  onClick={() => { setAuthMode("reset"); setAuthError(""); }}
+                  style={{ background: "none", border: "none", color: "#555", cursor: "pointer", fontFamily: "'DM Sans'", fontSize: "0.78rem", textDecoration: "underline" }}
+                >
+                  Forgot password?
+                </button>
+              </div>
+            )}
 
             <div
               style={{
                 textAlign: "center",
-                marginTop: 20,
+                marginTop: 16,
                 fontFamily: "'DM Sans'",
                 fontSize: "0.82rem",
                 color: "#555",
               }}
             >
-              {authMode === "login" ? "Don't have an account? " : "Already have an account? "}
+              {authMode === "reset" ? "Remember it? " : authMode === "login" ? "Don't have an account? " : "Already have an account? "}
               <button
                 onClick={() => {
                   setAuthMode(authMode === "login" ? "signup" : "login");
@@ -1063,7 +1092,7 @@ export default function HyroxApp() {
                   fontSize: "0.82rem",
                 }}
               >
-                {authMode === "login" ? "Sign up" : "Sign in"}
+                {authMode === "reset" ? "Sign in" : authMode === "login" ? "Sign up" : "Sign in"}
               </button>
             </div>
           </div>
